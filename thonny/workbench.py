@@ -275,7 +275,7 @@ class Workbench(tk.Tk):
         self.set_default("general.font_scaling_mode", "default")
         self.set_default("general.environment", [])
         self.set_default("general.large_icon_rowheight_threshold", 32)
-        self.set_default("file.avoid_zenity", False)
+        self.set_default("file.avoid_zenity", True)
         self.set_default("run.working_directory", os.path.expanduser("~"))
         self.set_default(
             "general.data_url_prefix", "https://raw.githubusercontent.com/thonny/thonny/master/data"
