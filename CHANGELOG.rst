@@ -2,8 +2,33 @@
 Version history
 ===============
 
-4.2.0b1 (2026-03-??)
+5.0.0b1 (2026-04-10)
 ====================
+
+The major version has been bumped only because of dependency upgrades in bundles. All new features have been moved to version 6 milestone.
+
+Breaking changes
+----------------
+* Upgrade bundled Python version to 3.14. **This means the Windows installer now requires at least Window 10 and macOS installer requires at least Catalina!** Python 3.8 is still supported, so in principle you can use this version in Windows 7, but you wouldn't gain much over 4.1.7.
+* Stop publishing binaries for Linux, #3210. The Linux installation script now creates a private venv (based on system python3) for Thonny even in x84_64.
+* Stop publishing XXL bundle as it is not trivial to prepare bundles for all popular architectures while making sure there are no version conflicts between the large number of packages. For teachers who relied on the XXL bundle, the work-around is to prepare a suitable requirements.txt, which can be used as input in Thonny's package manager.
+* Start publishing separate installers for Intel and Arm Macs.
+* Stop publishing installers for 32-bit Windows.
+* Start publishing installers for Arm-Windows.
+
+Other changes and fixes
+-----------------------
+* By default, Tk file dialogs are now used instead of Zenity in Linux (uncheck "Tools => Options => Use Tk file dialogs instead of Zenity" to revert this choice)
+* Add support for Python 3.11, 3.12, 3.13, 3.14, 3.15 (#3213, #3577, #3799, #2739, #3744, #3082, #3729, #3552)
+* Fix macOS crash when opening package selection dialog
+* Check if in virtual environment on boot (#3112)
+* Add Python coloring for pyx-files, #3450
+* Use subprocess.CREATE_NO_WINDOW when creating subprocess in Windows, #2817
+* Allow stopping auto-scroll in Shell by scrolling up, #1988
+* Get rid of a find-replace warning, #3593
+* Add support for newer setuptools versions
+* Add support for newer Tkinter versions (#3744
+* Upgrade several bundled dependencies (Pylint, Mypy, esptool, etc.)
 * Add Arabic, Bulgarian, Hindi, Indonesian, Icelandic and Malayalam translation. Update several other translations. Thanks for all contributors! Please see https://poeditor.com/projects/view?id=256075 for credits! *Please note that Thonny's maintainers have not reviewed the translations!*
 
 4.1.7 (2024-12-16)

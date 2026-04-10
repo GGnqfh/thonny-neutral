@@ -1,10 +1,10 @@
 [build-system]
-requires = ["uv_build>=0.8.3,<0.9.0"]
+requires = ["uv_build>=0.11.6,<0.12.0"]
 build-backend = "uv_build"
 
 [project]
 name = "thonny"
-version = "4.2.0-dev1"
+version = "5.0.0-b1"
 description = "Python IDE for beginners"
 readme = "README.rst"
 license = "MIT"
@@ -25,8 +25,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "Intended Audience :: Education",
     "Intended Audience :: End Users/Desktop",
-    "License :: Freeware",
-    "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
     "Operating System :: MacOS",
     "Operating System :: Microsoft :: Windows",
@@ -86,7 +84,19 @@ dev = [
 module-name = "thonny"
 module-root = ""
 source-exclude = ["registered.json", ".mypy_cache"]
-source-include = ["/defaults.ini"]
+source-include = [
+    "defaults.ini",
+    "CHANGELOG.rst",
+    "CREDITS.rst",
+    "LICENSE.txt",
+    "README.rst",
+    "requirements.txt",
+    "licenses/ECLIPSE-ICONS-LICENSE.txt",
+    "packaging/linux/thonny.1",
+    "packaging/icons/*.png",
+    "packaging/linux/org.thonny.Thonny.appdata.xml",
+    "packaging/linux/org.thonny.Thonny.desktop",
+]
 
 [tool.black]
 line-length = 100
