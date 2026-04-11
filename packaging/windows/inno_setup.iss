@@ -317,14 +317,20 @@ begin
     end;
 end.
 
+[Code]
+
 function Old32BitInstallForAllUsersExists: Boolean;
 begin
-  Result := RegKeyExists(HKLM32, 'Software\Classes\Applications\thonny.exe');
+  Result :=
+    RegKeyExists(HKLM32, 'Software\Classes\Applications\thonny.exe') or
+    RegKeyExists(HKLM32, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\Thonny_is1');
 end;
 
 function Old32BitInstallForThisUserExists: Boolean;
 begin
-  Result := RegKeyExists(HKCU32, 'Software\Classes\Applications\thonny.exe');
+  Result :=
+    RegKeyExists(HKCU32, 'Software\Classes\Applications\thonny.exe') or
+    RegKeyExists(HKCU32, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\Thonny_is1');
 end;
 
 function InitializeSetup(): Boolean;
@@ -337,11 +343,12 @@ begin
   begin
       Msg := 'A previous Thonny installation created by an older installer was found.';
 
-    MsgBox(
-      Msg + #13#10#13#10 +
-      'Please uninstall the old version first, then run this installer again.',
-      mbError, MB_OK);
+    Msg := Msg + #13#10#13#10 +
+      'If you continue, Thonny may be installed twice.' + #13#10 +
+      'It is recommended to uninstall the old version first.' + #13#10#13#10 +
+      'Do you want to continue anyway?';
 
-    Result := False;
+    if MsgBox(Msg, mbConfirmation, MB_YESNO) <> IDYES then
+      Result := False;
   end;
 end;
