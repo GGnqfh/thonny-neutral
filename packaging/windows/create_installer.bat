@@ -18,8 +18,8 @@ copy thonny_python.ini %BUILDDIR%
 %BUILDDIR%\python -s -m pip install --no-warn-script-location --no-cache-dir --no-binary mypy -r ..\requirements-regular-bundle.txt
 
 @echo ............... INSTALLING THONNY ...................................
-@rem %BUILDDIR%\python -s -m pip install --no-warn-script-location --pre --no-cache-dir thonny
-%BUILDDIR%\python -s -m pip install --no-warn-script-location ..\..\dist\thonny-4.2.0.dev1-py3-none-any.whl
+%BUILDDIR%\python -s -m pip install --no-warn-script-location --pre --no-cache-dir thonny
+@rem %BUILDDIR%\python -s -m pip install --no-warn-script-location ..\..\dist\thonny-4.2.0.dev1-py3-none-any.whl
 
 @echo ............... CLEANING PYTHON ............................
 @rem move following 3 files to avoid confusion (user may think they're Thonny license etc.)
@@ -74,13 +74,13 @@ copy ..\..\README.rst %BUILDDIR% /Y>NUL
 
 @echo ............... CREATING INSTALLER ..........................
 set /p VERSION=<%BUILDDIR%\Lib\site-packages\thonny\VERSION
-"C:\Program Files (x86)\Inno Setup 6\iscc" /dInstallerPrefix=thonny /dAppVer=%VERSION% /dSourceFolder=build inno_setup.iss > installer_building.log
+"C:\Program Files (x86)\Inno Setup 6\iscc" /dInstallerPrefix=thonny /dAppVer=%VERSION% /dArch=x64 /dSupportedArchitectures="x64compatible arm64" /dSourceFolder=build inno_setup.iss > installer_building.log
 
 @echo ............... CREATING ZIP ..........................
 SET PATH=%PATH%;C:\Program Files\7-Zip
 copy ..\portable_thonny.ini %BUILDDIR%
 cd %BUILDDIR%
-7z a -tzip ..\dist\thonny-%VERSION%-windows-portable.zip *
+7z a -tzip ..\dist\thonny-%VERSION%-windows-portable-x64.zip *
 del portable_thonny.ini
 cd ..
 

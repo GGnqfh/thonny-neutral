@@ -22,7 +22,11 @@ AppUpdatesURL=https://thonny.org
 ; Actual privileges depend on how user started the installer
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=commandline dialog
+
+; Compatibility
 MinVersion=10.0
+ArchitecturesAllowed={#SupportedArchitectures}
+ArchitecturesInstallIn64BitMode={#SupportedArchitectures}
 
 ; Will show important info on welcome page
 DisableWelcomePage=no
@@ -43,13 +47,13 @@ AlwaysShowDirOnReadyPage=yes
 ; Request extra space for precompiling libraries
 ExtraDiskSpaceRequired=25000000
 OutputDir=dist
-OutputBaseFilename={#InstallerPrefix}-{#AppVer}
+OutputBaseFilename={#InstallerPrefix}-{#AppVer}-{#Arch}
 Compression=lzma2/ultra
 SolidCompression=yes
 
 LicenseFile=license-for-win-installer.txt
 WizardImageFile=screenshot_with_logo_semidark.bmp
-WizardSmallImageFile=small_logo.bmp 
+WizardSmallImageFile=small_logo.bmp
 ChangesAssociations=yes
 
 ; Signing
@@ -65,7 +69,7 @@ ChangesAssociations=yes
 ; signtool prefix to be configured in Tools => Configure sign tools:
 ; "C:\Program Files (x86)\Windows Kits\10\App Certification Kit\signtool.exe" sign /f CERT.p12 /p PASSWORD $p
 ; NB! Don't forget the trailing $p
-SignTool=signtool /tr http://timestamp.digicert.com /td sha256 /fd sha256 /d $qInstaller for Thonny {#AppVer}$q /du $qhttps://thonny.org$q $f
+;SignTool=signtool /tr http://timestamp.digicert.com /td sha256 /fd sha256 /d $qInstaller for Thonny {#AppVer}$q /du $qhttps://thonny.org$q $f
 
 
 [Languages]
@@ -106,6 +110,7 @@ Root: HKA; Subkey: "Software\Classes\Applications\thonny.exe";                  
 Root: HKA; Subkey: "Software\Classes\Applications\thonny.exe";                       ValueType: string; ValueName: "AppUserModelID";   ValueData: "{#AppUserModelID}";  Flags: uninsdeletekey
 Root: HKA; Subkey: "Software\Classes\Applications\thonny.exe\SupportedTypes";        ValueType: string; ValueName: ".py";              ValueData: "";        Flags: uninsdeletekey
 Root: HKA; Subkey: "Software\Classes\Applications\thonny.exe\SupportedTypes";        ValueType: string; ValueName: ".pyw";             ValueData: "";        Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\Applications\thonny.exe\SupportedTypes";        ValueType: string; ValueName: ".pyde";             ValueData: "";        Flags: uninsdeletekey
 Root: HKA; Subkey: "Software\Classes\Applications\thonny.exe\shell\open\command";    ValueType: string; ValueName: "";                 ValueData: """{app}\thonny.exe"" ""%1"""; Flags: uninsdeletekey
 Root: HKA; Subkey: "Software\Classes\Applications\thonny.exe\shell\Edit with Thonny\command";   ValueType: string; ValueName: "";      ValueData: """{app}\thonny.exe"" ""%1"""; Flags: uninsdeletekey
 
@@ -123,10 +128,11 @@ Root: HKA; Subkey: "Software\Classes\{#ThonnyPyProgID}"; ValueType: string; Valu
 
 Root: HKA; Subkey: "Software\Classes\{#ThonnyPyProgID}\shell\open\command";     ValueType: string; ValueName: ""; ValueData: """{app}\thonny.exe"" ""%1""";  Flags: uninsdeletekey
 
-; Relate this ProgID with *.py and *.pyw extensions
+; Relate this ProgID with *.pyde, *.py and *.pyw extensions
 ; https://docs.microsoft.com/en-us/windows/desktop/shell/how-to-include-an-application-on-the-open-with-dialog-box
 Root: HKA; Subkey: "Software\Classes\.py\OpenWithProgIds";  ValueType: string; ValueName: "{#ThonnyPyProgID}";   Flags: uninsdeletevalue
 Root: HKA; Subkey: "Software\Classes\.pyw\OpenWithProgIds"; ValueType: string; ValueName: "{#ThonnyPyProgID}";   Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\.pyde\OpenWithProgIds"; ValueType: string; ValueName: "{#ThonnyPyProgID}";   Flags: uninsdeletevalue
 
 ; Add "Python file" to Explorer's "New" context menu (don't remove on uninstallation)
 Root: HKA; Subkey: "Software\Classes\.py\ShellNew";  ValueType: string; ValueData: "Python.File";  

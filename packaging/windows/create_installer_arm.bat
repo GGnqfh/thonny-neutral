@@ -1,4 +1,4 @@
-@echo off
+echo off
 
 set BUILDDIR=build
 del %BUILDDIR% /Q
@@ -6,23 +6,20 @@ rmdir %BUILDDIR% /S /Q
 mkdir %BUILDDIR%
 
 @echo ............... COPYING PYTHON ...................................
-xcopy C:\Python38-32\* %BUILDDIR% /S /E /K>NUL
+xcopy C:\Python314-arm64\* %BUILDDIR% /S /E /K>NUL
 @echo ............... COPYING OTHER STUFF ...................................
-copy ThonnyRunner38\Win32\Release\thonny.exe %BUILDDIR% /Y
-@rem NB! ucrt_redist not required in Windows 10
-xcopy ucrt_redist\*.dll %BUILDDIR% /S /E /K>NUL
-xcopy ucrt_redist\api-ms-win*.dll %BUILDDIR%\DLLs /S /E /K>NUL
+copy ThonnyRunner314\ARM64\Release\thonny.exe %BUILDDIR% /Y
 copy thonny_python.ini %BUILDDIR%
 
 @echo ............... INSTALLING DEPS ...................................
 
-%BUILDDIR%\python -s -m pip install --no-warn-script-location wheel
+%BUILDDIR%\python -s -m pip install --no-warn-script-location --no-cache-dir -U wheel setuptools
 
-%BUILDDIR%\python -s -m pip install --no-warn-script-location --no-binary mypy -r ..\requirements-regular-bundle.txt
+%BUILDDIR%\python -s -m pip install --no-warn-script-location --no-cache-dir --no-binary mypy -r ..\requirements-regular-bundle.txt
 
 @echo ............... INSTALLING THONNY ...................................
 %BUILDDIR%\python -s -m pip install --no-warn-script-location --pre --no-cache-dir thonny
-@rem %BUILDDIR%\python -s -m pip install --no-warn-script-location ..\setuptools\thonny-4.0.0b2.dev0-py3-none-any.whl
+@rem %BUILDDIR%\python -s -m pip install --no-warn-script-location ..\setuptools\thonny-4.0.0b4.dev1-py3-none-any.whl
 
 @echo ............... CLEANING PYTHON ............................
 @rem move following 3 files to avoid confusion (user may think they're Thonny license etc.)
@@ -44,7 +41,7 @@ del "%BUILDDIR%\Scripts\*" /Q>NUL
 
 copy .\pip.bat "%BUILDDIR%\Scripts\pip.bat"
 copy .\pip.bat "%BUILDDIR%\Scripts\pip3.bat"
-copy .\pip.bat "%BUILDDIR%\Scripts\pip3.8.bat"
+copy .\pip.bat "%BUILDDIR%\Scripts\pip3.14.bat"
 
 rmdir %BUILDDIR%\lib\test /S /Q>NUL
 
@@ -77,13 +74,9 @@ copy ..\..\README.rst %BUILDDIR% /Y>NUL
 
 @echo ............... CREATING INSTALLER ..........................
 set /p VERSION=<%BUILDDIR%\Lib\site-packages\thonny\VERSION
-"C:\Program Files (x86)\Inno Setup 6\iscc" /dInstallerPrefix=thonny-py38 /dAppVer=%VERSION% /dSourceFolder=build inno_setup.iss > installer_building.log
+"C:\Program Files (x86)\Inno Setup 6\iscc" /dInstallerPrefix=thonny /dAppVer=%VERSION% /dArch=arm64 /dSupportedArchitectures="arm64" /dSourceFolder=build inno_setup.iss > installer_building.log
 
-@echo ............... CREATING ZIP ..........................
-SET PATH=%PATH%;C:\Program Files\7-Zip
-copy ..\portable_thonny.ini %BUILDDIR%
-cd %BUILDDIR%
-7z a -tzip ..\dist\thonny-py38-%VERSION%-windows-portable.zip *
-del portable_thonny.ini
-cd ..
 
+
+rmdir %BUILDDIR% /S /Q
+pause
