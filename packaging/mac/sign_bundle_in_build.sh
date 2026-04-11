@@ -45,6 +45,9 @@ codesign -s "$SIGN_ID" --force --timestamp --keychain $CHAIN \
 codesign -s "$SIGN_ID" --force --timestamp --keychain $CHAIN \
 	--entitlements thonny.entitlements --options runtime \
 	build/Thonny.app/Contents/Frameworks/Python.framework/Versions/3.14/bin/python3.14
+codesign -s "$SIGN_ID" --force --timestamp --keychain $CHAIN \
+	--entitlements thonny.entitlements --options runtime \
+	build/Thonny.app/Contents/Frameworks/Python.framework/Versions/3.14/bin/python3.14-intel64
 #spctl --assess -vvv build/Thonny.app/Contents/Frameworks/Python.framework
 #spctl --assess -vvv build/Thonny.app/Contents/Frameworks/Python.framework/Versions/3.14/Python
 #spctl --assess -vvv build/Thonny.app/Contents/Frameworks/Python.framework/Versions/3.14/bin/python3.14

@@ -27,6 +27,7 @@ cp $SCRIPT_DIR/Thonny.app.initial_template/Contents/Info.plist \
 
 FRAMEWORKS=build/Thonny.app/Contents/Frameworks
 PYTHON_CURRENT=$FRAMEWORKS/Python.framework/Versions/3.14
+EXE=$PYTHON_CURRENT/bin/python3.14
 
 # Sign
 echo "--- Signing -------------------------------------"
@@ -37,23 +38,23 @@ echo "--- Signing -------------------------------------"
 export MACOSX_DEPLOYMENT_TARGET=10.9
 export SDKROOT=~/MacOSX10.9.sdk
 
-$PYTHON_CURRENT/bin/python3.14 -s -m pip install --no-cache-dir wheel
+$EXE -s -m pip install --no-cache-dir wheel
 
 # Force Universal2 builds for certain deps, which would come single arch otherwise
-#$PYTHON_CURRENT/bin/python3.14 -s -m pip install universal_dists/bitarray-2.9.2-cp314-cp314-macosx_10_9_universal2.whl
-#$PYTHON_CURRENT/bin/python3.14 -s -m pip install universal_dists/cffi-1.17.1-cp314-cp314-macosx_10_9_universal2.whl
-#$PYTHON_CURRENT/bin/python3.14 -s -m pip install universal_dists/PyYAML-6.0.2-cp314-cp314-macosx_10_9_universal2.whl
-#$PYTHON_CURRENT/bin/python3.14 -s -m pip install universal_dists/cryptography-38.0.4-cp36-abi3-macosx_10_10_universal2.whl
-#$PYTHON_CURRENT/bin/python3.14 -s -m pip install universal_dists/websockets-11.0.3-cp314-cp314-macosx_10_9_universal2.whl
+#$EXE -s -m pip install universal_dists/bitarray-2.9.2-cp314-cp314-macosx_10_9_universal2.whl
+#$EXE -s -m pip install universal_dists/cffi-1.17.1-cp314-cp314-macosx_10_9_universal2.whl
+#$EXE -s -m pip install universal_dists/PyYAML-6.0.2-cp314-cp314-macosx_10_9_universal2.whl
+#$EXE -s -m pip install universal_dists/cryptography-38.0.4-cp36-abi3-macosx_10_10_universal2.whl
+#$EXE -s -m pip install universal_dists/websockets-11.0.3-cp314-cp314-macosx_10_9_universal2.whl
 
 for req_file in $req_files
 do
 	echo "installing from $req_file"
-	$PYTHON_CURRENT/bin/python3.14  -s -m pip install --no-binary mypy --no-binary lxml -r $req_file
+	$EXE  -s -m pip install --no-binary mypy --no-binary lxml -r $req_file
 done
-$PYTHON_CURRENT/bin/python3.14 -s -m pip install --no-cache-dir certifi
-#$PYTHON_CURRENT/bin/python3.14 -s -m pip install --pre --no-cache-dir "thonny==${VERSION}"
-$PYTHON_CURRENT/bin/python3.14 -s -m pip install ../../dist/thonny-4.2.0.dev1-py3-none-any.whl
+$EXE -s -m pip install --no-cache-dir certifi
+$EXE -s -m pip install --pre --no-cache-dir "thonny==${VERSION}"
+#$EXE -s -m pip install ../../dist/thonny-4.2.0.dev1-py3-none-any.whl
 
 rm $PYTHON_CURRENT/bin/thonny # because Thonny is not supposed to run from there
 
