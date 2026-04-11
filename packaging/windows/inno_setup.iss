@@ -153,6 +153,10 @@ FinishedHeadingLabel=Great success!
 
 [Code]
 
+
+const
+  OldUninstallKey = 'Software\Microsoft\Windows\CurrentVersion\Uninstall\Thonny_is1';
+
 var
   QuoteLabel: TLabel;
   Upgraded : Boolean;
@@ -311,4 +315,27 @@ begin
       
       QuoteLabel.Top := WizardForm.FinishedPage.Height - QuoteLabel.Height - ScaleY(20);
     end;
+end;
+
+
+function Old32BitThonnyExists: Boolean;
+begin
+  Result :=
+    RegKeyExists(HKLM32, OldUninstallKey) or
+    RegKeyExists(HKCU32, OldUninstallKey);
+end;
+
+function InitializeSetup: Boolean;
+begin
+  if Old32BitThonnyExists then
+  begin
+    MsgBox(
+      'A previous Thonny installation created by an older installer was found.'#13#10#13#10 +
+      'Please uninstall the old version first, then run this installer again.',
+      mbError, MB_OK);
+    Result := False;
+  end
+  else
+    Result := True;
 end.
+
