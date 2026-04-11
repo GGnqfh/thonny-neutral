@@ -315,27 +315,33 @@ begin
       
       QuoteLabel.Top := WizardForm.FinishedPage.Height - QuoteLabel.Height - ScaleY(20);
     end;
-end;
-
-
-function Old32BitThonnyExists: Boolean;
-begin
-  Result :=
-    RegKeyExists(HKLM32, OldUninstallKey) or
-    RegKeyExists(HKCU32, OldUninstallKey);
-end;
-
-function InitializeSetup: Boolean;
-begin
-  if Old32BitThonnyExists then
-  begin
-    MsgBox(
-      'A previous Thonny installation created by an older installer was found.'#13#10#13#10 +
-      'Please uninstall the old version first, then run this installer again.',
-      mbError, MB_OK);
-    Result := False;
-  end
-  else
-    Result := True;
 end.
 
+function Old32BitInstallForAllUsersExists: Boolean;
+begin
+  Result := RegKeyExists(HKLM32, 'Software\Classes\Applications\thonny.exe');
+end;
+
+function Old32BitInstallForThisUserExists: Boolean;
+begin
+  Result := RegKeyExists(HKCU32, 'Software\Classes\Applications\thonny.exe');
+end;
+
+function InitializeSetup(): Boolean;
+var
+  Msg: String;
+begin
+  Result := True;
+
+  if Old32BitInstallForAllUsersExists() or Old32BitInstallForThisUserExists() then
+  begin
+      Msg := 'A previous Thonny installation created by an older installer was found.';
+
+    MsgBox(
+      Msg + #13#10#13#10 +
+      'Please uninstall the old version first, then run this installer again.',
+      mbError, MB_OK);
+
+    Result := False;
+  end;
+end;
