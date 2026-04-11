@@ -1,10 +1,12 @@
-﻿; Give AppVer and SourceFolder from command line, eg:
+﻿#define AppUserModelID "Thonny.Thonny"
+#define ThonnyPyProgID "Thonny.py"
+; Give AppVer and SourceFolder from command line, eg:
 ; "C:\Program Files (x86)\Inno Setup 5\iscc" /dAppVer=1.13 /dSourceFolder=build inno_setup.iss 
 ;#define AppVer "9.9.9"
 ;#define InstallerPrefix "thonny"
-;#define SourceFolder "C:\workspaces\python_stuff\thonny\packaging\windows\dummy"
-#define AppUserModelID "Thonny.Thonny"
-#define ThonnyPyProgID "Thonny.py"
+;#define SourceFolder "C:\Users\Aivar Annamaa\python_stuff\thonny\packaging\windows\build"
+;#define SupportedArchitectures "x64"
+;#define Arch "x64"
 
 
 [Setup]
@@ -292,8 +294,7 @@ begin
       if Upgraded then
         WizardForm.FinishedLabel.Caption := 'Thonny is now upgraded.'
       else
-        WizardForm.FinishedLabel.Caption := 'Thonny is now installed.'
-      end;
+        WizardForm.FinishedLabel.Caption := 'Thonny is now installed.';
       WizardForm.FinishedLabel.Caption := WizardForm.FinishedLabel.Caption 
         + ' Run it via shortcut or right-click a *.py file and select "Edit with Thonny".';
 
@@ -315,7 +316,7 @@ begin
       
       QuoteLabel.Top := WizardForm.FinishedPage.Height - QuoteLabel.Height - ScaleY(20);
     end;
-end.
+end;
 
 function Old32BitInstallForAllUsersExists: Boolean;
 begin
@@ -337,11 +338,12 @@ begin
   begin
       Msg := 'A previous Thonny installation created by an older installer was found.';
 
-    MsgBox(
-      Msg + #13#10#13#10 +
-      'Please uninstall the old version first, then run this installer again.',
-      mbError, MB_OK);
+    Msg := Msg + #13#10#13#10 +
+      'If you continue, Thonny may be installed twice.' + #13#10 +
+      'It is recommended to uninstall the old version first.' + #13#10#13#10 +
+      'Do you want to continue anyway?';
 
-    Result := False;
-  end;
+    if MsgBox(Msg, mbConfirmation, MB_YESNO) <> IDYES then
+      Result := False;
+  end; 
 end;
