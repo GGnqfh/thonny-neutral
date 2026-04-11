@@ -61,7 +61,7 @@ Homepage = "https://thonny.org"
 "Source code" = "https://github.com/thonny/thonny"
 
 [project.gui-scripts]
-thonny = "thonny.main:run"
+thonny = "thonny:launch"
 
 
 [dependency-groups]
