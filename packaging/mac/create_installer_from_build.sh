@@ -4,6 +4,7 @@ set -e
 PROD_PKG_PREFIX=$1
 PROD_NAME=$2
 VERSION=$3
+ARCH_NAME=$4
 
 INSTALLER_SIGN_ID="Developer ID Installer: Aivar Annamaa (2SA9D4CVU8)"
 
@@ -31,7 +32,7 @@ pkgbuild \
 	$COMPONENT_PACKAGE
 	
 echo "Creating product archive"
-PRODUCT_ARCHIVE=dist/${PROD_PKG_PREFIX}-${VERSION}-$(uname -m).pkg
+PRODUCT_ARCHIVE=dist/${PROD_PKG_PREFIX}-${VERSION}-${ARCH_NAME}.pkg
 rm -f $PRODUCT_ARCHIVE
 mkdir -p dist
 productbuild \

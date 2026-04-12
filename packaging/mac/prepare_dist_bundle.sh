@@ -2,6 +2,7 @@
 set -e
 
 VERSION=$1
+EXE_SUFFIX=$2
 shift
 req_files="$@"
 
@@ -27,7 +28,7 @@ cp $SCRIPT_DIR/Thonny.app.initial_template/Contents/Info.plist \
 
 FRAMEWORKS=build/Thonny.app/Contents/Frameworks
 PYTHON_CURRENT=$FRAMEWORKS/Python.framework/Versions/3.14
-EXE=$PYTHON_CURRENT/bin/python3.14
+EXE=$PYTHON_CURRENT/bin/python3.14$EXE_SUFFIX
 
 # Sign
 echo "--- Signing -------------------------------------"
@@ -39,13 +40,6 @@ export MACOSX_DEPLOYMENT_TARGET=10.9
 export SDKROOT=~/MacOSX10.9.sdk
 
 $EXE -s -m pip install --no-cache-dir wheel
-
-# Force Universal2 builds for certain deps, which would come single arch otherwise
-#$EXE -s -m pip install universal_dists/bitarray-2.9.2-cp314-cp314-macosx_10_9_universal2.whl
-#$EXE -s -m pip install universal_dists/cffi-1.17.1-cp314-cp314-macosx_10_9_universal2.whl
-#$EXE -s -m pip install universal_dists/PyYAML-6.0.2-cp314-cp314-macosx_10_9_universal2.whl
-#$EXE -s -m pip install universal_dists/cryptography-38.0.4-cp36-abi3-macosx_10_10_universal2.whl
-#$EXE -s -m pip install universal_dists/websockets-11.0.3-cp314-cp314-macosx_10_9_universal2.whl
 
 for req_file in $req_files
 do
