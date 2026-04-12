@@ -13,6 +13,9 @@ copy thonny_python.ini %BUILDDIR%
 
 @echo ............... INSTALLING DEPS ...................................
 
+@rem newer versions don't have Win arm wheels
+%BUILDDIR%\python -s -m pip install --no-warn-script-location --no-cache-dir -U cryptography==46.0.3
+
 %BUILDDIR%\python -s -m pip install --no-warn-script-location --no-cache-dir -U wheel setuptools
 
 %BUILDDIR%\python -s -m pip install --no-warn-script-location --no-cache-dir --no-binary mypy -r ..\requirements-regular-bundle.txt
@@ -76,7 +79,3 @@ copy ..\..\README.rst %BUILDDIR% /Y>NUL
 set /p VERSION=<%BUILDDIR%\Lib\site-packages\thonny\VERSION
 "C:\Program Files (x86)\Inno Setup 6\iscc" /dInstallerPrefix=thonny /dAppVer=%VERSION% /dArch=arm64 /dSupportedArchitectures="arm64" /dSourceFolder=build inno_setup.iss > installer_building.log
 
-
-
-rmdir %BUILDDIR% /S /Q
-pause
