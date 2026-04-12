@@ -14,7 +14,8 @@ Breaking changes
 * Stop publishing XXL bundle as it is not trivial to prepare bundles for all popular architectures while making sure there are no version conflicts between the large number of packages. For teachers who relied on the XXL bundle, the work-around is to prepare a suitable requirements.txt, which can be used as input in Thonny's package manager.
 * Start publishing separate installers for Intel and Arm Macs.
 * Stop publishing installers for 32-bit Windows.
-* Start publishing installers for Arm-Windows.
+* "For all users" installation in Windows now gets directed to "C:\Program Files" instead of "C:\Program Files (x86)"
+
 
 Other changes and fixes
 -----------------------
@@ -30,6 +31,7 @@ Other changes and fixes
 * Add support for newer Tkinter versions (#3744
 * Upgrade several bundled dependencies (Pylint, Mypy, esptool, etc.)
 * Add Arabic, Bulgarian, Hindi, Indonesian, Icelandic and Malayalam translation. Update several other translations. Thanks for all contributors! Please see https://poeditor.com/projects/view?id=256075 for credits! *Please note that Thonny's maintainers have not reviewed the translations!*
+* Start publishing installers for Arm-Windows.
 
 4.1.7 (2024-12-16)
 ==================
