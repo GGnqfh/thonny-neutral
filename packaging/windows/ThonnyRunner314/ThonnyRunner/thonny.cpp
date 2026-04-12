@@ -17,8 +17,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
 	}
 
 	PyConfig config;
-	PyConfig_InitPythonConfig(&config);
-	config.isolated = 1;
+	PyConfig_InitIsolatedConfig(&config);
 	PyConfig_SetArgv(&config, argc, argv);
 
 	// Flag doesn't affect the back-end.
