@@ -15,8 +15,7 @@ UDISKS2_BUS_NAME = "org.freedesktop.UDisks2"
 
 
 def list_volumes_sync() -> Sequence[str]:
-    loop = asyncio.get_event_loop()
-    return loop.run_until_complete(list_volumes())
+    return asyncio.run(list_volumes())
 
 
 async def list_volumes() -> Sequence[str]:
