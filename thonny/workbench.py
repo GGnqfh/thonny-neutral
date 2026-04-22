@@ -2390,6 +2390,7 @@ class Workbench(tk.Tk):
                     # Don't want to replace this with simple string data of file names.
                     pass
                 else:
+                    logger.info("Exporting clipboard")
                     copy_to_clipboard(clipboard_data)
             except Exception:
                 pass

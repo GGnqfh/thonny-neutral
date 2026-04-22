@@ -506,29 +506,12 @@ def copy_to_clipboard(data):
 
 
 def _copy_to_windows_clipboard(data):
-    # https://bugs.python.org/file37366/test_clipboard_win.py
-    import ctypes
-
-    wcscpy = ctypes.cdll.msvcrt.wcscpy
-    OpenClipboard = ctypes.windll.user32.OpenClipboard
-    EmptyClipboard = ctypes.windll.user32.EmptyClipboard
-    SetClipboardData = ctypes.windll.user32.SetClipboardData
-    CloseClipboard = ctypes.windll.user32.CloseClipboard
-    CF_UNICODETEXT = 13
-    GlobalAlloc = ctypes.windll.kernel32.GlobalAlloc
-    GlobalLock = ctypes.windll.kernel32.GlobalLock
-    GlobalUnlock = ctypes.windll.kernel32.GlobalUnlock
-    GMEM_DDESHARE = 0x2000
-
-    OpenClipboard(None)
-    EmptyClipboard()
-    hCd = GlobalAlloc(GMEM_DDESHARE, 2 * (len(data) + 1))
-    pchData = GlobalLock(hCd)
-    wcscpy(ctypes.c_wchar_p(pchData), data)
-    GlobalUnlock(hCd)
-    SetClipboardData(CF_UNICODETEXT, hCd)
-    # ctypes.windll.user32.SetClipboardText(CF_UNICODETEXT, hCd)
-    CloseClipboard()
+    # https://github.com/python/cpython/issues/84632#issuecomment-2379692208
+    from ctypes import windll
+    user32 = windll.user32
+    user32.OpenClipboard(0)
+    user32.GetClipboardData(1)
+    user32.CloseClipboard()
 
 
 def sizeof_fmt(num, suffix="B"):
