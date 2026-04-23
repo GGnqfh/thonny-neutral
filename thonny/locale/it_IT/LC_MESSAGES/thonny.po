@@ -221,7 +221,7 @@ msgstr "Evidenzia gli elementi di sintassi"
 
 #: thonny/plugins/editor_config_page.py:36
 msgid "Highlight current line (requires reopening the editor)"
-msgstr "Evidenzia la riga corrente (richeide il riavvio dell'editor)"
+msgstr "Evidenzia la riga corrente (richiede il riavvio dell'editor)"
 
 #: thonny/plugins/editor_config_page.py:73
 msgid "Show line numbers"
@@ -1990,9 +1990,9 @@ msgstr "Cerca micropython-lib e PyPI"
 
 #: thonny/plugins/cpython_frontend/cp_pip_gui.py:51
 msgid "The packages of this interpreter can be managed via your system package manager."
-msgstr ""
+msgstr "I pacchetti di questo interprete possono essere gestiti tramite il gestore di pacchetti del tuo sistema."
 
 #: thonny/plugins/cpython_frontend/cp_pip_gui.py:57
 msgid "For pip-installing a package, you need to use a virtual environment."
-msgstr ""
+msgstr "Per installare un pacchetto con pip, è necessario usare un ambiente virtuale."
 
