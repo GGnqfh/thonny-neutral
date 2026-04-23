@@ -2,6 +2,19 @@
 Version history
 ===============
 
+5.0.0 (2026-04-22)
+====================
+Fixed regressions introduced in 5.0.0b1:
+
+* Fix broken GUI entry script (most relevant in Linux, ~/apps/thonny/bin/thonny now works again), #3844
+* Fix sending file paths as arguments to Windows Thonny launcher, #3835
+* Fix clipboard management in Windows, #3832
+* Fix "There is no current event loop in thread 'MainThread'" error in UF2 dialog in Linux, #3775 by @matejmatuska
+
+Other fixes:
+
+* Make flashing dialogs support more families, #3847
+
 5.0.0b1 (2026-04-10)
 ====================
 

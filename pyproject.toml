@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "thonny"
-version = "5.0.0-b1"
+version = "5.0.0"
 description = "Python IDE for beginners"
 readme = "README.rst"
 license = "MIT"
