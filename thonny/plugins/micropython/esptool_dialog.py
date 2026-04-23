@@ -45,22 +45,6 @@ class ESPFlashingDialog(BaseFlashingDialog):
     def get_target_label(self) -> str:
         return "Target port"
 
-    def get_families_mapping(self) -> Dict[str, str]:
-        codes = [
-            "esp32",
-            "esp32c2",
-            "esp32c3",
-            "esp32c6",
-            "esp32h2",
-            "esp32p4",
-            "esp32s2",
-            "esp32s3",
-        ]
-        if self.firmware_name == "MicroPython":
-            codes.insert(0, "esp8266")
-
-        return {family_code_to_name(code): code for code in codes}
-
     def get_instructions(self) -> Optional[str]:
         return (
             f"Click the {get_menu_char()} button to see all features and options. If you're stuck then check the variant's\n"

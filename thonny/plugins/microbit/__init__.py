@@ -83,12 +83,6 @@ class MicrobitFlashingDialog(Uf2FlashingDialog):
     def get_variants_url(self) -> str:
         return get_workbench().get_data_url(f"{self.firmware_name.lower()}-variants-daplink.json")
 
-    def get_families_mapping(self) -> Dict[str, str]:
-        return {
-            "nRF51": "nrf51",
-            "nRF52": "nrf52",
-        }
-
     def get_instructions(self) -> Optional[str]:
         return (
             f"This dialog allows you to install or update {self.firmware_name} on your micro:bit.\n"

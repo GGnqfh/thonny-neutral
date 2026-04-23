@@ -26,10 +26,13 @@ FAMILY_CODES_TO_NAMES = {
     "rp2": "RP2",
     "samd21": "SAMD21",
     "samd51": "SAMD51",
+    "same51": "SAME51",
+    "same54": "SAME54",
     "esp8266": "ESP8266",
     "esp32": "ESP32",
     "esp32c2": "ESP32-C2",
     "esp32c3": "ESP32-C3",
+    "esp32c5": "ESP32-C5",
     "esp32c6": "ESP32-C6",
     "esp32h2": "ESP32-H2",
     "esp32p4": "ESP32-P4",
@@ -97,7 +100,7 @@ class BaseFlashingDialog(WorkDialog, ABC):
             self.main_frame,
             exportselection=False,
             state="enabled",
-            mapping=self.get_families_mapping(),
+            mapping={},
         )
         self._family_combo.grid(
             row=5, column=2, sticky="nsew", padx=(ipadx, epadx), pady=(epady, 0)
@@ -133,8 +136,16 @@ class BaseFlashingDialog(WorkDialog, ABC):
 
         self.main_frame.columnconfigure(2, weight=1)
 
-    @abstractmethod
-    def get_families_mapping(self) -> Dict[str, str]: ...
+    def get_families_mapping(self) -> Dict[str, str]:
+        if self._downloaded_variants:
+            codes = []
+            for variant in self._downloaded_variants:
+                if variant["family"] not in codes:
+                    codes.append(variant["family"])
+        else:
+            codes = []
+
+        return {family_code_to_name(code): code for code in sorted(codes)}
 
     def update_ui(self):
         for widget in self.main_frame.winfo_children():
@@ -143,6 +154,11 @@ class BaseFlashingDialog(WorkDialog, ABC):
                     widget.state(["disabled", "readonly"])
                 else:
                     widget.state(["!disabled", "readonly"])
+
+        if not self._family_combo.mapping and self._downloaded_variants:
+            families_mapping = self.get_families_mapping()
+            logger.info("Setting families mapping: %s", families_mapping)
+            self._family_combo.set_mapping(families_mapping)
 
         if self._state == "idle":
             targets = self.find_targets()
