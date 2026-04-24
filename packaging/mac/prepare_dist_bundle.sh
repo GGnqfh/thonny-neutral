@@ -4,6 +4,7 @@ set -e
 VERSION=$1
 EXE_SUFFIX=$2
 shift
+shift
 req_files="$@"
 
 PREFIX=$HOME/thonny_template_build_314
@@ -28,7 +29,7 @@ cp $SCRIPT_DIR/Thonny.app.initial_template/Contents/Info.plist \
 
 FRAMEWORKS=build/Thonny.app/Contents/Frameworks
 PYTHON_CURRENT=$FRAMEWORKS/Python.framework/Versions/3.14
-EXE=$PYTHON_CURRENT/bin/python3.14$EXE_SUFFIX
+EXE="${PYTHON_CURRENT}/bin/python3.14${EXE_SUFFIX}"
 
 # Sign
 echo "--- Signing -------------------------------------"
