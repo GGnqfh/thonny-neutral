@@ -117,6 +117,10 @@ Root: HKA; Subkey: "Software\Classes\Applications\thonny.exe\SupportedTypes";   
 Root: HKA; Subkey: "Software\Classes\Applications\thonny.exe\shell\open\command";    ValueType: string; ValueName: "";                 ValueData: """{app}\thonny.exe"" ""%1"""; Flags: uninsdeletekey
 Root: HKA; Subkey: "Software\Classes\Applications\thonny.exe\shell\Edit with Thonny\command";   ValueType: string; ValueName: "";      ValueData: """{app}\thonny.exe"" ""%1"""; Flags: uninsdeletekey
 
+; Explicit marker for the modern 64-bit install mode.
+Root: HKA; Subkey: "Software\Thonny"; ValueType: string; ValueName: "InstallMode"; ValueData: "64-bit"; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Thonny"; ValueType: string; ValueName: "InstallArchitecture"; ValueData: "{#Arch}"; Flags: uninsdeletevalue
+
 ; Add link to Thonny under existing Python.File ProgID
 Root: HKA; Subkey: "Software\Classes\Python.File\shell\Edit with Thonny"; ValueType: none; Flags: uninsdeletekey
 Root: HKA; Subkey: "Software\Classes\Python.File\shell\Edit with Thonny\command"; ValueType: string; ValueName: ""; ValueData: """{app}\thonny.exe"" ""%1""";  Flags: uninsdeletekey
@@ -158,7 +162,8 @@ FinishedHeadingLabel=Great success!
 
 
 const
-  OldUninstallKey = 'Software\Microsoft\Windows\CurrentVersion\Uninstall\Thonny_is1';
+  ModernInstallKey = 'Software\Thonny';
+  ModernInstallModeValue = '64-bit';
 
 var
   QuoteLabel: TLabel;
@@ -319,14 +324,13 @@ begin
     end;
 end;
 
-function Old32BitInstallForAllUsersExists: Boolean;
+function Modern64BitInstallMarkerExists(RootKey: Integer): Boolean;
+var
+  InstallMode: String;
 begin
-  Result := RegKeyExists(HKLM32, 'Software\Classes\Applications\thonny.exe');
-end;
-
-function Old32BitInstallForThisUserExists: Boolean;
-begin
-  Result := RegKeyExists(HKCU32, 'Software\Classes\Applications\thonny.exe');
+  Result := False;
+  if RegQueryStringValue(RootKey, ModernInstallKey, 'InstallMode', InstallMode) then
+    Result := CompareText(InstallMode, ModernInstallModeValue) = 0;
 end;
 
 function InitializeSetup(): Boolean;
@@ -335,7 +339,8 @@ var
 begin
   Result := True;
 
-  if Old32BitInstallForAllUsersExists() or Old32BitInstallForThisUserExists() then
+  if (InstalledForAllUsers() or InstalledForThisUser()) 
+    and not (Modern64BitInstallMarkerExists(HKEY_CURRENT_USER) or Modern64BitInstallMarkerExists(HKEY_LOCAL_MACHINE)) then
   begin
       Msg := 'A previous Thonny installation created by an older installer was found.';
 
