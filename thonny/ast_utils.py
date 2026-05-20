@@ -177,7 +177,15 @@ def mark_text_ranges(node, source: Union[str, bytes], fallback_to_one_char=False
     assert isinstance(source, (str, bytes))
     from asttokens.asttokens import ASTTokens
 
-    ASTTokens(source, tree=node)
+    try:
+        ASTTokens(source, tree=node)
+    except (IndexError, ValueError):
+        # asttokens can fail on some sources (eg. mismatched line offsets,
+        # certain f-strings, etc.). Fall back to the end_lineno / end_col_offset
+        # values that ast.parse already provides (Python 3.8+) so that callers
+        # like the debugger don't crash. See issue #3866.
+        pass
+
     for child in ast.walk(node):
         if hasattr(child, "last_token"):
             child.end_lineno, child.end_col_offset = child.last_token.end
