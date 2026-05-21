@@ -1145,6 +1145,7 @@ class EditorNotebook(CustomNotebook):
             target_path = askopenfilename(
                 filetypes=_dialog_filetypes, initialdir=initialdir, parent=get_workbench()
             )
+            path_or_uri = target_path
         else:
             assert node == "remote"
             target_path = ask_backend_path(
@@ -1153,9 +1154,11 @@ class EditorNotebook(CustomNotebook):
             if not target_path:
                 return
 
+            path_or_uri = remote_path_to_uri(target_path)
+
         if target_path:
             # self.close_single_untitled_unmodified_editor()
-            self.show_file(remote_path_to_uri(target_path), propose_dialog=False)
+            self.show_file(path_or_uri, propose_dialog=False)
 
     def _control_o(self, event):
         # http://stackoverflow.com/questions/22907200/remap-default-keybinding-in-tkinter
