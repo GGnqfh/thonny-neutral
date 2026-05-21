@@ -802,15 +802,7 @@ def uri_to_long_title(uri: str) -> str:
 
 
 def local_path_to_uri(path: str) -> str:
-    if path.startswith("//"):
-        # UNC
-        return f"{FILE_URI_SCHEME}:{urllib.parse.quote(path)}"
-    elif path[1:3] == ":\\":
-        # Regular Windows path, needs special treatment on other platforms
-        return pathlib.PureWindowsPath(path).as_uri()
-    else:
-        assert path.startswith("/")
-        return f"{FILE_URI_SCHEME}://{urllib.parse.quote(path)}"
+    return pathlib.Path(path).as_uri()
 
 
 def remote_path_to_uri(path: str) -> str:
