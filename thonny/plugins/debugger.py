@@ -3,6 +3,7 @@
 """
 Adds debugging commands and features.
 """
+
 import ast
 import os.path
 import tkinter as tk

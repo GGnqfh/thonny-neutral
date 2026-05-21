@@ -1,5 +1,6 @@
 # coding=utf-8
 """Extensions for tk.Text"""
+
 import sys
 import time
 import tkinter

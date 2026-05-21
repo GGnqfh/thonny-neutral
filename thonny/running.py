@@ -7,6 +7,7 @@ Commands get executed via shell, this way the command line in the
 shell becomes kind of title for the execution.
 
 """
+
 import collections
 import os.path
 import queue

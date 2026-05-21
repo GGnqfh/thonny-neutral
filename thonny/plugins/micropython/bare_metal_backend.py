@@ -98,15 +98,11 @@ class BareMetalMicroPythonBackend(MicroPythonBackend, UploadDownloadMixin):
 
     def _cmd_get_fs_info(self, cmd) -> Dict[str, Any]:
         if self._tmgr._using_simplified_micropython():
-            used = self._evaluate(
-                dedent(
-                    """
+            used = self._evaluate(dedent("""
                     __minny_helper.print_mgmt_value(
                         __minny_helper.builtins.sum([__minny_helper.os.size(name) for name in __minny_helper.os.listdir()])
                     )  
-                    """
-                )
-            )
+                    """))
             return {
                 "total": None,
                 "used": used,
@@ -115,9 +111,7 @@ class BareMetalMicroPythonBackend(MicroPythonBackend, UploadDownloadMixin):
             }
 
         else:
-            result = self._evaluate(
-                dedent(
-                    """
+            result = self._evaluate(dedent("""
                 __thonny_stat = __minny_helper.os.statvfs(%r)
                 __thonny_total = __thonny_stat[2] * __thonny_stat[0]
                 __thonny_free = __thonny_stat[3] * __thonny_stat[0]
@@ -131,10 +125,7 @@ class BareMetalMicroPythonBackend(MicroPythonBackend, UploadDownloadMixin):
                 del __thonny_stat 
                 del __thonny_total
                 del __thonny_free
-                """
-                )
-                % cmd.path
-            )
+                """) % cmd.path)
 
             return result
 

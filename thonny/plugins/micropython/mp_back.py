@@ -286,9 +286,7 @@ class MicroPythonBackend(MainBackend, ABC):
                 "{name : (__minny_helper.repr(value), __minny_helper.builtins.id(value)) for (name, value) in __minny_helper.builtins.globals().items() if not name.startswith('__')}"
             )
         else:
-            globs = self._evaluate(
-                dedent(
-                    """
+            globs = self._evaluate(dedent("""
                 import %s as __mod_for_globs
                 __minny_helper.print_mgmt_value(
                     {name : (__minny_helper.repr(__minny_helper.builtins.getattr(__mod_for_globs, name)), 
@@ -297,9 +295,7 @@ class MicroPythonBackend(MainBackend, ABC):
                         if not name.startswith('__')}
                 )
                 del __mod_for_globs
-            """
-                )
-            )
+            """))
 
         value_infos = {}
         for name, pair in globs.items():
@@ -335,14 +331,10 @@ class MicroPythonBackend(MainBackend, ABC):
         # TODO: add back links
         # TODO: release old links
         # relevant = set([cmd.object_id] + cmd.back_links + cmd.forward_links)
-        self._execute(
-            dedent(
-                """
+        self._execute(dedent("""
                 if __minny_helper.builtins.id(__minny_helper.object_info) not in __minny_helper.inspector_values:
                     __minny_helper.inspector_values[__minny_helper.builtins.id(__minny_helper.object_info)] = __minny_helper.object_info
-            """
-            )
-        )
+            """))
 
         return {"id": cmd.object_id, "info": info}
 
@@ -353,9 +345,7 @@ class MicroPythonBackend(MainBackend, ABC):
         Can't leave it in a global object, because when querying globals(),
         repr(globals()) would cause infinite recursion."""
 
-        result = self._evaluate(
-            dedent(
-                """
+        result = self._evaluate(dedent("""
                 for __minny_helper.object_info in (
                         [__minny_helper.last_non_none_repl_value]
                         + __minny_helper.builtins.list(__minny_helper.builtins.globals().values()) 
@@ -369,17 +359,12 @@ class MicroPythonBackend(MainBackend, ABC):
                 else:
                     __minny_helper.object_info = None
                     __minny_helper.print_mgmt_value(None)
-            """
-                % object_id
-            )
-        )
+            """ % object_id))
 
         if result is not None:
             return result
         elif context_id is not None:
-            return self._evaluate(
-                dedent(
-                    """
+            return self._evaluate(dedent("""
                 __minny_helper.context_value = __minny_helper.inspector_values.get(%d, None)
                 
                 if __minny_helper.context_value is None:
@@ -408,10 +393,7 @@ class MicroPythonBackend(MainBackend, ABC):
                         
                 __minny_helper.context_value = None
                 __minny_helper.context_children = None
-            """
-                    % (context_id, object_id)
-                )
-            )
+            """ % (context_id, object_id)))
         else:
             return None
 
@@ -571,9 +553,7 @@ class MicroPythonBackend(MainBackend, ABC):
     ) -> Optional[Dict[str, Dict]]:
         """The key of the result dict is simple name"""
         if self._tmgr._supports_directories():
-            raw_data = self._evaluate(
-                dedent(
-                    """
+            raw_data = self._evaluate(dedent("""
                 __thonny_result = {} 
                 try:
                     __thonny_names = __minny_helper.listdir(%r)
@@ -587,10 +567,7 @@ class MicroPythonBackend(MainBackend, ABC):
                             except __minny_helper.builtins.OSError as e:
                                 __thonny_result[__thonny_name] = __minny_helper.builtins.str(e)
                     __minny_helper.print_mgmt_value(__thonny_result)
-            """
-                )
-                % (path, include_hidden, path.rstrip("/") + "/")
-            )
+            """) % (path, include_hidden, path.rstrip("/") + "/"))
             if raw_data is None:
                 return None
         elif path == "":

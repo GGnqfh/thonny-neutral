@@ -3,6 +3,7 @@
 """
 Classes used both by front-end and back-end
 """
+
 from __future__ import annotations
 
 import dataclasses

@@ -11,7 +11,7 @@ from typing import Dict  # @UnusedImport
 NUM_CONTEXT_LINES = (50, 500, 5000000)
 
 # Reason last stmt is continued (or C_NONE if it's not).
-(C_NONE, C_BACKSLASH, C_STRING_FIRST_LINE, C_STRING_NEXT_LINES, C_BRACKET) = range(5)
+C_NONE, C_BACKSLASH, C_STRING_FIRST_LINE, C_STRING_NEXT_LINES, C_BRACKET = range(5)
 
 # Find what looks like the start of a popular stmt.
 

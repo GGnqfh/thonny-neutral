@@ -9,6 +9,7 @@ is far from clean.
 I could also do python -c "from backend import MainCPythonBackend: MainCPythonBackend().mainloop()",
 but looks like this gives relative __file__-s on imported modules.)
 """
+
 import ast
 
 # NB! This module can be also imported (when querying its path for uploading)

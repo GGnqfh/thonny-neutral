@@ -792,7 +792,7 @@ class Workbench(tk.Tk):
         def server_loop():
             while True:
                 logger.debug("Waiting for next client")
-                (client_socket, _) = server_socket.accept()
+                client_socket, _ = server_socket.accept()
                 try:
                     data = bytes()
                     while True:
@@ -2909,7 +2909,7 @@ class Workbench(tk.Tk):
     def report_exception(self, title: str = "Internal error") -> None:
         logger.exception(title)
         if tk._default_root and not self._closing:  # type: ignore
-            (typ, value, _) = sys.exc_info()
+            typ, value, _ = sys.exc_info()
             assert typ is not None
             if issubclass(typ, UserError):
                 msg = str(value)

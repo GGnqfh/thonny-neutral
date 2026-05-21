@@ -682,11 +682,11 @@ class BaseFileBrowser(ttk.Frame):
 
     def open_file(self, path):
         if not path:
-            return 
+            return
         pass
 
     def open_path_with_system_app(self, path):
-        if not path: 
+        if not path:
             return
         pass
 
@@ -855,7 +855,7 @@ class BaseFileBrowser(ttk.Frame):
             selected_node_id = self.get_selected_node()
             if selected_node_id:
                 selected_path = self.tree.set(selected_node_id, "path")
-            
+
         if selected_path:
             self.menu.add_command(label=tr("Properties"), command=self.show_properties)
         if context == "button":
@@ -1062,8 +1062,8 @@ class BaseFileBrowser(ttk.Frame):
         if target is None:
             target = self.get_active_directory() or self.current_focus
         if not target:
-            return 
-        
+            return
+
         if os.path.isfile(target):
             target = os.path.dirname(target)
         self.copypaste.paste(target)

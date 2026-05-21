@@ -1065,8 +1065,8 @@ class EditorNotebook(CustomNotebook):
     # override from parent class to define the logic for double-clicking on empty space of tab bar
     def on_empty_space_click(self, event: tk.Event) -> None:
         """Open new file when double-clicking on empty area of tab bar"""
-        self._cmd_new_file()   
-        
+        self._cmd_new_file()
+
     def save_all_named_editors(self):
         all_saved = True
         for editor in self.get_all_editors():
