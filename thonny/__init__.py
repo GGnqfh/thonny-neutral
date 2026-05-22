@@ -4,7 +4,7 @@ import re
 import sys
 import time
 from logging import getLogger
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, cast, Optional
 
 SUPPORTED_VERSIONS = ["3.9", "3.10", "3.11", "3.12", "3.13"]
 
@@ -43,8 +43,8 @@ _ipc_file = None
 
 
 # variables assigned elsewhere
-_workbench = None
-_runner = None
+_workbench: Optional["Workbench"] = None
+_runner: Optional["Runner"] = None
 
 
 # For timing
@@ -104,11 +104,13 @@ def get_version():
 
 
 def get_workbench() -> "Workbench":
-    return cast("Workbench", _workbench)
+    assert _workbench is not None
+    return _workbench
 
 
 def get_runner() -> "Runner":
-    return cast("Runner", _runner)
+    assert _runner is not None
+    return _runner
 
 
 def get_shell(create: bool = True) -> "ShellView":

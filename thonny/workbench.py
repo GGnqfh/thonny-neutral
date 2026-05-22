@@ -223,7 +223,7 @@ class Workbench(tk.Tk):
 
         assistance.init()
         logger.info("Creating runner")
-        self._runner = Runner()
+        thonny._runner = Runner()
         self._init_hooks()  # Plugins may register hooks, so initialized them before to load plugins.
         logger.info("Start loading plugins")
         self._load_plugins()
@@ -770,8 +770,7 @@ class Workbench(tk.Tk):
     def _start_runner(self) -> None:
         try:
             self.update_idletasks()  # allow UI to complete
-            thonny._runner = self._runner
-            self._runner.start()
+            thonny._runner.start()
             self._update_toolbar()
         except Exception:
             self.report_exception("Error when initializing backend")
