@@ -10,11 +10,12 @@ from thonny import get_runner, get_workbench
 from thonny.common import UserError
 from thonny.lsp_proxy import LanguageServerProxy
 from thonny.misc_utils import get_project_venv_interpreters
+from thonny.running import create_frontend_python_process
 
 logger = getLogger(__name__)
 
 
-class PyrightProxy(LanguageServerProxy):
+class BasedpyrightProxy(LanguageServerProxy):
 
     def get_settings(self) -> Dict:
         proxy = get_runner().get_backend_proxy()
@@ -61,7 +62,7 @@ class PyrightProxy(LanguageServerProxy):
 
         user_stubs_path = proxy.get_user_stubs_location()
         # do not blindly set stubPath to a folder not (directly) containing stubs,
-        # as this would unnecessarily hide the typings folder from Pyright
+        # as this would unnecessarily hide the typings folder from Basedpyright
         if self._folder_may_contain_stubs_beyond_typeshed(user_stubs_path):
             result["basedpyright"]["analysis"]["stubPath"] = user_stubs_path
         if os.path.isdir(os.path.join(user_stubs_path, "stdlib")):
@@ -84,13 +85,11 @@ class PyrightProxy(LanguageServerProxy):
         return False
 
     def _create_server_process(self) -> subprocess.Popen[bytes]:
-        node_path = self._get_node_path()
-        basedpyright_dir = os.path.join(
-            os.path.dirname(__file__), "..", "vendored_libs", "basedpyright"
-        )
-        langserv_js = os.path.join(basedpyright_dir, "langserver.index.js")
-        logger.info("Node path: %r", node_path)
-        logger.info("Pyright launcher: %r", langserv_js)
+        server_path = shutil.which("basedpyright-langserver")
+        if server_path is None:
+            raise UserError("Can't find basedpyright-langserver")
+
+        logger.info("basedpyright-langserver path: %r", server_path)
 
         if os.name == "nt":
             creationflags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_NO_WINDOW
@@ -107,11 +106,11 @@ class PyrightProxy(LanguageServerProxy):
             if not key.startswith("PYTHON") and key != "VIRTUAL_ENV"
         }
         for key in env:
-            logger.debug("Pyright env: %s=%r", key, env.get(key))
+            logger.debug("Basedpyright env: %s=%r", key, env.get(key))
 
         return subprocess.Popen(
-            [node_path, langserv_js, "--stdio"],
-            executable=node_path,
+            [server_path, "--stdio"],
+            executable=server_path,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -121,36 +120,9 @@ class PyrightProxy(LanguageServerProxy):
             env=env,
         )
 
-    def _get_node_path(self) -> str:
-        bin_dir = os.path.dirname(sys.executable)
-        if os.name == "nt":
-            exe_name = "node.exe"
-        else:
-            exe_name = "node"
-
-        preferred_node_path = os.path.join(bin_dir, exe_name)
-        if os.path.isfile(preferred_node_path):
-            return preferred_node_path
-
-        import thonny
-
-        dev_dir = os.path.dirname(os.path.dirname(thonny.__file__))
-        dev_node_path = os.path.join(os.path.join(dev_dir, exe_name))
-        if os.path.isfile(dev_node_path):
-            return dev_node_path
-
-        node_in_path = shutil.which(exe_name)
-        if node_in_path is None:
-            raise UserError(
-                f"Can't find {exe_name}. In order to make code completion and analysis work, "
-                f"{exe_name} needs to be copied to {bin_dir} or {dev_dir} or Node.js needs to be installed globally"
-            )
-
-        return node_in_path
-
     def get_supported_language_ids(self) -> typing.Set[str]:
         return {"python"}
 
 
 def load_plugin():
-    get_workbench().add_language_server_proxy_class(PyrightProxy)
+    get_workbench().add_language_server_proxy_class(BasedpyrightProxy)

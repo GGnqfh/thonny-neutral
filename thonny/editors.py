@@ -802,6 +802,7 @@ class Editor(BaseEditor):
                 )
             )
         )
+        logger.info("Completed connecting %r to language server %s", self.get_uri(), ls_proxy)
         self._primed_ls_proxies.append(ls_proxy)
 
     def _consider_sending_changes_to_server(self, event=None):

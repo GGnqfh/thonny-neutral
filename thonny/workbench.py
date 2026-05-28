@@ -452,7 +452,7 @@ class Workbench(tk.Tk):
                             inlineValue=None,
                             inlayHint=None,
                             diagnostics=None,
-                            # workspaceFolders=True, # TODO: This may require workspace/didChangeWorkspaceFolders to activate Pyright?
+                            # workspaceFolders=True, # TODO: This may require workspace/didChangeWorkspaceFolders to activate Basedpyright?
                         ),
                         textDocument=TextDocumentClientCapabilities(
                             publishDiagnostics=PublishDiagnosticsClientCapabilities(
