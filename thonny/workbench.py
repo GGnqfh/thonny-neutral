@@ -1064,21 +1064,10 @@ class Workbench(tk.Tk):
         self._status_label = ttk.Label(self._statusbar, text="")
         self._status_label.grid(row=1, column=1, sticky="w")
 
-        # self._init_support_ukraine_bar()
+        # # self._init_support_ukraine_bar()  # removed Ukraine support
         self._init_backend_switcher()
 
-    def _init_support_ukraine_bar(self) -> None:
-        ukraine_label = create_action_label(
-            self._statusbar,
-            tr("Support Ukraine"),
-            self._support_ukraine,
-            # image=self.get_image("Ukraine"),
-            # compound="left"
-        )
-        ukraine_label.grid(row=1, column=1, sticky="wsn")
 
-    def _support_ukraine(self, event=None) -> None:
-        webbrowser.open("https://github.com/thonny/thonny/wiki/Support-Ukraine")
 
     def _init_backend_switcher(self):
         # Set up the menu
