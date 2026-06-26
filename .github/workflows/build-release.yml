@@ -1,0 +1,234 @@
+name: Build Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build (e.g. 6.0.0.dev1)'
+        required: true
+        default: '6.0.0.dev1'
+
+env:
+  PYTHON_VERSION: '3.13'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          pip install -e ".[ssh,pty]"
+          pip install -r packaging/requirements-regular-bundle.txt
+
+      - name: Build with PyInstaller
+        run: |
+          pyinstaller --name Thonny ^
+            --windowed ^
+            --icon thonny\res\thonny.ico ^
+            --add-data "thonny\res;thonny\res" ^
+            --add-data "thonny\plugins;thonny\plugins" ^
+            --add-data "thonny\locale;thonny\locale" ^
+            --add-data "thonny\vendored_libs;thonny\vendored_libs" ^
+            --hidden-import=thonny ^
+            --hidden-import=thonny.plugins.cpython_frontend ^
+            --hidden-import=thonny.plugins.cpython_backend ^
+            --hidden-import=thonny.plugins.micropython ^
+            --hidden-import=thonny.plugins.pi ^
+            --hidden-import=thonny.plugins.microbit ^
+            --hidden-import=thonny.plugins.rpi_pico ^
+            --hidden-import=thonny.plugins.rp2040 ^
+            --hidden-import=thonny.plugins.calliope ^
+            --hidden-import=thonny.plugins.ev3 ^
+            --hidden-import=thonny.plugins.esp ^
+            --hidden-import=thonny.plugins.uf2 ^
+            --hidden-import=thonny.plugins.debugger ^
+            --hidden-import=thonny.plugins.system_shell ^
+            --hidden-import=thonny.plugins.help ^
+            --hidden-import=thonny.plugins.files ^
+            --hidden-import=thonny.plugins.editor ^
+            --hidden-import=thonny.plugins.shell ^
+            --hidden-import=thonny.plugins.outline ^
+            --hidden-import=thonny.plugins.ast_view ^
+            --hidden-import=minny ^
+            --collect-all minny ^
+            --collect-all esptool ^
+            thonny\__main__.py
+
+      - name: Package as ZIP
+        run: |
+          $version = if ($env:GITHUB_REF -match 'refs/tags/v(.+)') { $Matches[1] } else { "${{ github.event.inputs.version }}" }
+          Compress-Archive -Path dist\Thonny\* -DestinationPath dist\Thonny-$version-windows-x64.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: thonny-windows
+          path: dist/*.zip
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-tk tk-dev libglib2.0-0 libgl1-mesa-glx
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          pip install -e ".[ssh,pty]"
+          pip install -r packaging/requirements-regular-bundle.txt
+
+      - name: Build with PyInstaller
+        run: |
+          pyinstaller --name Thonny \
+            --windowed \
+            --add-data "thonny/res:thonny/res" \
+            --add-data "thonny/plugins:thonny/plugins" \
+            --add-data "thonny/locale:thonny/locale" \
+            --add-data "thonny/vendored_libs:thonny/vendored_libs" \
+            --hidden-import=thonny \
+            --hidden-import=thonny.plugins.cpython_frontend \
+            --hidden-import=thonny.plugins.cpython_backend \
+            --hidden-import=thonny.plugins.micropython \
+            --hidden-import=thonny.plugins.pi \
+            --hidden-import=thonny.plugins.microbit \
+            --hidden-import=thonny.plugins.rpi_pico \
+            --hidden-import=thonny.plugins.rp2040 \
+            --hidden-import=thonny.plugins.calliope \
+            --hidden-import=thonny.plugins.ev3 \
+            --hidden-import=thonny.plugins.esp \
+            --hidden-import=thonny.plugins.uf2 \
+            --hidden-import=thonny.plugins.debugger \
+            --hidden-import=thonny.plugins.system_shell \
+            --hidden-import=thonny.plugins.help \
+            --hidden-import=thonny.plugins.files \
+            --hidden-import=thonny.plugins.editor \
+            --hidden-import=thonny.plugins.shell \
+            --hidden-import=thonny.plugins.outline \
+            --hidden-import=thonny.plugins.ast_view \
+            --hidden-import=minny \
+            --collect-all minny \
+            --collect-all esptool \
+            thonny/__main__.py
+
+      - name: Package as tarball
+        run: |
+          version="${GITHUB_REF#refs/tags/v}"
+          if [[ "$GITHUB_REF" != refs/tags/v* ]]; then
+            version="${{ github.event.inputs.version }}"
+          fi
+          cd dist
+          tar -czf Thonny-$version-linux-x86_64.tar.gz -C . Thonny
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: thonny-linux
+          path: dist/*.tar.gz
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          pip install -e ".[ssh,pty]"
+          pip install -r packaging/requirements-regular-bundle.txt
+
+      - name: Build with PyInstaller
+        run: |
+          pyinstaller --name Thonny \
+            --windowed \
+            --icon thonny/res/thonny.ico \
+            --add-data "thonny/res:thonny/res" \
+            --add-data "thonny/plugins:thonny/plugins" \
+            --add-data "thonny/locale:thonny/locale" \
+            --add-data "thonny/vendored_libs:thonny/vendored_libs" \
+            --hidden-import=thonny \
+            --hidden-import=thonny.plugins.cpython_frontend \
+            --hidden-import=thonny.plugins.cpython_backend \
+            --hidden-import=thonny.plugins.micropython \
+            --hidden-import=thonny.plugins.pi \
+            --hidden-import=thonny.plugins.microbit \
+            --hidden-import=thonny.plugins.rpi_pico \
+            --hidden-import=thonny.plugins.rp2040 \
+            --hidden-import=thonny.plugins.calliope \
+            --hidden-import=thonny.plugins.ev3 \
+            --hidden-import=thonny.plugins.esp \
+            --hidden-import=thonny.plugins.uf2 \
+            --hidden-import=thonny.plugins.debugger \
+            --hidden-import=thonny.plugins.system_shell \
+            --hidden-import=thonny.plugins.help \
+            --hidden-import=thonny.plugins.files \
+            --hidden-import=thonny.plugins.editor \
+            --hidden-import=thonny.plugins.shell \
+            --hidden-import=thonny.plugins.outline \
+            --hidden-import=thonny.plugins.ast_view \
+            --hidden-import=minny \
+            --collect-all minny \
+            --collect-all esptool \
+            thonny/__main__.py
+
+      - name: Package as ZIP
+        run: |
+          version="${GITHUB_REF#refs/tags/v}"
+          if [[ "$GITHUB_REF" != refs/tags/v* ]]; then
+            version="${{ github.event.inputs.version }}"
+          fi
+          cd dist
+          zip -r Thonny-$version-macos-arm64.zip Thonny.app
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: thonny-macos
+          path: dist/*.zip
+
+  release:
+    needs: [build-windows, build-linux, build-macos]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
