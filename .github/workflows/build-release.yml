@@ -100,12 +100,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install pyinstaller
           pip install pyserial pylint docutils asttokens Send2Trash packaging
-          pip install esptool minny
+          pip install esptool
 
       - name: Install optional dependencies
         shell: pwsh
         run: |
-          pip install paramiko websockets adafruit_board_toolkit
+          pip install minny paramiko websockets adafruit_board_toolkit
         continue-on-error: true
 
       - name: Build with PyInstaller
