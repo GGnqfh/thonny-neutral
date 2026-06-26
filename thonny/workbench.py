@@ -930,17 +930,6 @@ class Workbench(tk.Tk):
                 group=101,
             )
 
-        self.add_command(
-            "SupportUkraine",
-            "help",
-            tr("Support Ukraine"),
-            self._support_ukraine,
-            image="Ukraine",
-            caption=tr("Support"),
-            include_in_toolbar=True,
-            group=101,
-        )
-
         if thonny.in_debug_mode():
             self.bind_all("<Control-Shift-Alt-D>", self._print_state_for_debugging, True)
 
