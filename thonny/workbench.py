@@ -1064,7 +1064,7 @@ class Workbench(tk.Tk):
         self._status_label = ttk.Label(self._statusbar, text="")
         self._status_label.grid(row=1, column=1, sticky="w")
 
-        # # # # self._init_support_ukraine_bar()  # removed Ukraine support  # removed Ukraine support  # removed Ukraine support
+        # # # # # self._init_support_ukraine_bar()  # removed Ukraine support  # removed Ukraine support  # removed Ukraine support  # removed Ukraine support
         self._init_backend_switcher()
 
 
