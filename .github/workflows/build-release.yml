@@ -100,7 +100,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install pyinstaller
           pip install pyserial pylint docutils asttokens Send2Trash packaging
-          pip install mypy --only-binary=:all: || pip install mypy
+          # mypy not available as wheel on Windows ARM64, skip (optional plugin)
           pip install paramiko websockets esptool minny adafruit_board_toolkit
 
       - name: Build with PyInstaller
