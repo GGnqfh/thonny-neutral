@@ -40,6 +40,8 @@ jobs:
           pyinstaller --name Thonny `
             --windowed `
             --icon thonny\res\thonny.ico `
+            --add-data "thonny\VERSION;thonny" `
+            --add-data "thonny\defaults.ini;thonny" `
             --add-data "thonny\res;thonny\res" `
             --add-data "thonny\plugins;thonny\plugins" `
             --add-data "thonny\locale;thonny\locale" `
@@ -92,11 +94,6 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-tk tk-dev libglib2.0-0 libgl1-mesa-glx xvfb
-
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
@@ -108,6 +105,8 @@ jobs:
         run: |
           pyinstaller --name Thonny \
             --windowed \
+            --add-data "thonny/VERSION:thonny" \
+            --add-data "thonny/defaults.ini:thonny" \
             --add-data "thonny/res:thonny/res" \
             --add-data "thonny/plugins:thonny/plugins" \
             --add-data "thonny/locale:thonny/locale" \
@@ -174,7 +173,8 @@ jobs:
         run: |
           pyinstaller --name Thonny \
             --windowed \
-            --icon thonny/res/thonny.ico \
+            --add-data "thonny/VERSION:thonny" \
+            --add-data "thonny/defaults.ini:thonny" \
             --add-data "thonny/res:thonny/res" \
             --add-data "thonny/plugins:thonny/plugins" \
             --add-data "thonny/locale:thonny/locale" \
