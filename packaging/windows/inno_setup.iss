@@ -72,7 +72,7 @@ ChangesAssociations=yes
 ; "C:\Program Files (x86)\Windows Kits\10\App Certification Kit\signtool.exe" sign /n "Open Source Developer Aivar Annamaa" $p
 ; "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x86\signtool.exe" sign /n "Open Source Developer Aivar Annamaa" $p
 ; NB! Don't forget the trailing $p
-SignTool=signtool /tr http://time.certum.pl /td sha256 /fd sha256 /d $qInstaller for Thonny {#AppVer}$q /du $qhttps://thonny.org$q $f
+;SignTool=signtool /tr http://time.certum.pl /td sha256 /fd sha256 /d $qInstaller for Thonny {#AppVer}$q /du $qhttps://thonny.org$q $f
 
 
 [Languages]
