@@ -1,0 +1,424 @@
+name: Build thonny-neutral Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build (e.g. v5.0.0)'
+        required: true
+
+env:
+  PYTHON314_VERSION: '3.14.0'
+
+jobs:
+  # ── Job 1: Build Python wheel ──
+  build-wheel:
+    name: Build Python wheel
+    runs-on: ubuntu-latest
+    outputs:
+      wheel-path: ${{ steps.wheel-name.outputs.wheel }}
+      source-version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Build wheel
+        run: |
+          pip install build
+          python -m build --wheel
+
+      - name: Get wheel filename
+        id: wheel-name
+        run: echo "wheel=$(ls dist/*.whl | xargs basename)" >> $GITHUB_OUTPUT
+
+      - name: Get version
+        id: version
+        run: echo "version=$(cat thonny/VERSION)" >> $GITHUB_OUTPUT
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-wheel
+          path: dist/*.whl
+
+  # ── Job 2: Build Windows x64 installer ──
+  build-windows:
+    name: Build Windows x64 installer
+    runs-on: windows-latest
+    needs: build-wheel
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download wheel
+        uses: actions/download-artifact@v4
+        with:
+          name: python-wheel
+          path: dist
+
+      - name: Install Python ${{ env.PYTHON314_VERSION }}
+        shell: pwsh
+        run: |
+          $url = "https://www.python.org/ftp/python/$env:PYTHON314_VERSION/python-$env:PYTHON314_VERSION-amd64.exe"
+          $output = "$env:TEMP\python-installer.exe"
+          Write-Host "Downloading Python $env:PYTHON314_VERSION from $url"
+          Invoke-WebRequest -Uri $url -OutFile $output
+          Start-Process -FilePath $output -ArgumentList "/quiet InstallAllUsers=1 TargetDir=C:\Program Files\Python314" -Wait -NoNewWindow
+          Write-Host "Python installed to C:\Program Files\Python314"
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Build installer
+        shell: cmd
+        working-directory: packaging\windows
+        run: |
+          set BUILDDIR=build
+          if exist %BUILDDIR% rmdir %BUILDDIR% /S /Q
+          mkdir %BUILDDIR%
+
+          echo ............... COPYING PYTHON ...................................
+          xcopy "C:\Program Files\Python314\*" %BUILDDIR% /S /E /K>NUL
+
+          echo ............... COPYING OTHER STUFF ...................................
+          copy ThonnyRunner314\x64\Release\thonny.exe %BUILDDIR% /Y
+          copy thonny_python.ini %BUILDDIR%
+
+          echo ............... INSTALLING DEPS ...................................
+          %BUILDDIR%\python -s -m pip install --no-warn-script-location --no-cache-dir wheel
+          %BUILDDIR%\python -s -m pip install --no-warn-script-location --no-cache-dir --no-binary mypy -r ..\requirements-regular-bundle.txt
+
+          echo ............... INSTALLING THONNY (neutral) ...................................
+          for %%w in (..\..\dist\*.whl) do set WHEEL=%%w
+          %BUILDDIR%\python -s -m pip install --no-warn-script-location --no-cache-dir "%WHEEL%"
+
+          echo ............... CLEANING PYTHON ............................
+          move %BUILDDIR%\LICENSE.txt %BUILDDIR%\PYTHON_LICENSE.txt
+          move %BUILDDIR%\README.txt %BUILDDIR%\PYTHON_README.txt
+          move %BUILDDIR%\NEWS.txt %BUILDDIR%\PYTHON_NEWS.txt
+
+          del /S "%BUILDDIR%\*.pyc">NUL
+          del /S "%BUILDDIR%\tcl\*.lib">NUL
+          del /S "%BUILDDIR%\*.a">NUL
+          del /S "%BUILDDIR%\*.chm">NUL
+
+          rmdir %BUILDDIR%\Doc /S /Q>NUL
+          rmdir %BUILDDIR%\Tools /S /Q>NUL
+          del "%BUILDDIR%\Scripts\*" /Q>NUL
+
+          copy pip.bat "%BUILDDIR%\Scripts\pip.bat"
+          copy pip.bat "%BUILDDIR%\Scripts\pip3.bat"
+          copy pip.bat "%BUILDDIR%\Scripts\pip3.14.bat"
+
+          rmdir %BUILDDIR%\lib\test /S /Q>NUL
+
+          del %BUILDDIR%\tcl\*.sh /Q>NUL
+          del %BUILDDIR%\tcl\tcl8.6\clock.tcl>NUL
+          del %BUILDDIR%\tcl\tcl8.6\safe.tcl>NUL
+          rmdir %BUILDDIR%\tcl\tix8.4.3\demos /S /Q>NUL
+
+          rmdir %BUILDDIR%\tcl\tk8.6\demos /S /Q>NUL
+          rmdir %BUILDDIR%\tcl\tk8.6\msgs /S /Q>NUL
+          rmdir %BUILDDIR%\tcl\tcl8.6\opt0.4 /S /Q>NUL
+          rmdir %BUILDDIR%\tcl\tcl8.6\msgs /S /Q>NUL
+          rmdir %BUILDDIR%\tcl\tcl8.6\tzdata /S /Q>NUL
+
+          rmdir %BUILDDIR%\lib\site-packages\pylint\test /S /Q>NUL
+          rmdir %BUILDDIR%\lib\site-packages\mypy\test /S /Q>NUL
+
+          echo ............... ADDING LICENSES ...................................
+          copy ..\..\LICENSE.txt %BUILDDIR% /Y>NUL
+          mkdir %BUILDDIR%\licenses
+          xcopy ..\..\licenses\* %BUILDDIR%\licenses /S /E /K>NUL
+
+          echo ............... ADDING OTHER STUFF ...................................
+          copy ..\..\CHANGELOG.rst %BUILDDIR% /Y>NUL
+          copy ..\..\CREDITS.rst %BUILDDIR% /Y>NUL
+          copy ..\..\README.rst %BUILDDIR% /Y>NUL
+
+          echo ............... CREATING INSTALLER ..........................
+          set /p VERSION=<%BUILDDIR%\Lib\site-packages\thonny\VERSION
+          "C:\Program Files (x86)\Inno Setup 6\iscc" /dInstallerPrefix=thonny /dAppVer=%VERSION% /dArch=x64 /dSupportedArchitectures="x64compatible arm64" /dSourceFolder=build inno_setup.iss
+
+          echo ............... CREATING PORTABLE ZIP ..........................
+          set PATH=%PATH%;C:\Program Files\7-Zip
+          copy ..\portable_thonny.ini %BUILDDIR%
+          cd %BUILDDIR%
+          7z a -tzip ..\dist\thonny-%VERSION%-windows-portable-x64.zip *
+          del portable_thonny.ini
+          cd ..
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer-x64
+          path: packaging\windows\dist\*
+
+  # ── Job 3: Build macOS x64 (Intel) installer ──
+  build-macos-x64:
+    name: Build macOS Intel x64 installer
+    runs-on: macos-13
+    needs: build-wheel
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download wheel
+        uses: actions/download-artifact@v4
+        with:
+          name: python-wheel
+          path: dist
+
+      - name: Install Python ${{ env.PYTHON314_VERSION }} for macOS (universal2)
+        run: |
+          curl -L -o /tmp/python.pkg "https://www.python.org/ftp/python/${{ env.PYTHON314_VERSION }}/python-${{ env.PYTHON314_VERSION }}-macos11.pkg"
+          sudo installer -pkg /tmp/python.pkg -target /
+
+      - name: Prepare base bundle template
+        run: |
+          cd packaging/mac
+          bash prepare_base_bundle.sh
+
+      - name: Prepare distribution bundle
+        run: |
+          cd packaging/mac
+
+          VERSION=$(cat ../../thonny/VERSION)
+          WHEEL_PATH=$(ls ../../dist/*.whl | head -1)
+          export PREFIX=$HOME/thonny_template_build_314
+          SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+          rm -rf build
+          mkdir -p build
+
+          cp -R -H $PREFIX/Thonny.app build
+          cp $SCRIPT_DIR/Thonny.app.initial_template/Contents/MacOS/* build/Thonny.app/Contents/MacOS
+          cp $SCRIPT_DIR/Thonny.app.initial_template/Contents/Resources/* build/Thonny.app/Contents/Resources
+          cp $SCRIPT_DIR/Thonny.app.initial_template/Contents/Info.plist build/Thonny.app/Contents
+
+          FRAMEWORKS=build/Thonny.app/Contents/Frameworks
+          PYTHON_CURRENT=$FRAMEWORKS/Python.framework/Versions/3.14
+          EXE="${PYTHON_CURRENT}/bin/python3.14-intel64"
+
+          export MACOSX_DEPLOYMENT_TARGET=10.9
+
+          $EXE -s -m pip install --no-cache-dir wheel
+          $EXE -s -m pip install --no-binary mypy -r ../requirements-regular-bundle.txt
+          $EXE -s -m pip install --no-cache-dir certifi
+          $EXE -s -m pip install --no-cache-dir "$WHEEL_PATH"
+
+          rm $PYTHON_CURRENT/bin/thonny
+
+          rm -rf $PYTHON_CURRENT/Resources/English.lproj/Documentation
+          rm -rf $PYTHON_CURRENT/share
+          rm -rf $PYTHON_CURRENT/lib/python3.14/test
+          rm -rf $PYTHON_CURRENT/lib/python3.14/idlelib
+          rm -rf $PYTHON_CURRENT/bin/idle3
+          rm -rf $PYTHON_CURRENT/bin/idle3.14
+          rm -rf $PYTHON_CURRENT/lib/python3.14/site-packages/pylint/test
+          rm -rf $PYTHON_CURRENT/lib/python3.14/site-packages/mypy/test
+          find $PYTHON_CURRENT/lib -name '*.pyc' -delete
+          find $PYTHON_CURRENT/lib -name '*.exe' -delete
+
+          cd build/Thonny.app/Contents/MacOS
+          ln -s ../Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python Python
+          cd $SCRIPT_DIR
+
+          cp thonny_python.ini $PYTHON_CURRENT/bin
+          python3 make_scripts_relocatable.py "$PYTHON_CURRENT/bin"
+
+          sed -i '' "s/VERSION/$VERSION/" build/Thonny.app/Contents/Info.plist
+
+      - name: Create unsigned installer .pkg
+        run: |
+          cd packaging/mac
+
+          VERSION=$(cat ../../thonny/VERSION)
+
+          rm -rf resources_build
+          mkdir resources_build
+          cp resource_templates/* resources_build
+          sed -i '' "s/VERSION/$VERSION/g" resources_build/WELCOME.html
+          sed -i '' "s/PROD_NAME/Thonny/g" resources_build/WELCOME.html
+          cp ../license-soft-wrap.txt resources_build/LICENSE.txt 2>/dev/null || true
+
+          pkgbuild \
+            --root build \
+            --component-plist Component.plist \
+            --install-location /Applications \
+            --identifier "org.thonny.Thonny.component" \
+            --version $VERSION \
+            ThonnyComponent.pkg
+
+          mkdir -p dist
+          productbuild \
+            --identifier "org.thonny.Thonny.product" \
+            --version $VERSION \
+            --distribution Distribution.plist \
+            --resources resources_build \
+            dist/thonny-$VERSION-x64.pkg
+
+      - name: Upload macOS x64 installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-installer-x64
+          path: packaging/mac/dist/*.pkg
+
+  # ── Job 4: Build macOS ARM64 (Apple Silicon) installer ──
+  build-macos-arm64:
+    name: Build macOS Apple Silicon installer
+    runs-on: macos-14
+    needs: build-wheel
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download wheel
+        uses: actions/download-artifact@v4
+        with:
+          name: python-wheel
+          path: dist
+
+      - name: Install Python ${{ env.PYTHON314_VERSION }} for macOS (universal2)
+        run: |
+          curl -L -o /tmp/python.pkg "https://www.python.org/ftp/python/${{ env.PYTHON314_VERSION }}/python-${{ env.PYTHON314_VERSION }}-macos11.pkg"
+          sudo installer -pkg /tmp/python.pkg -target /
+
+      - name: Prepare base bundle template
+        run: |
+          cd packaging/mac
+          bash prepare_base_bundle.sh
+
+      - name: Prepare distribution bundle
+        run: |
+          cd packaging/mac
+
+          VERSION=$(cat ../../thonny/VERSION)
+          WHEEL_PATH=$(ls ../../dist/*.whl | head -1)
+          export PREFIX=$HOME/thonny_template_build_314
+          SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+          rm -rf build
+          mkdir -p build
+
+          cp -R -H $PREFIX/Thonny.app build
+          cp $SCRIPT_DIR/Thonny.app.initial_template/Contents/MacOS/* build/Thonny.app/Contents/MacOS
+          cp $SCRIPT_DIR/Thonny.app.initial_template/Contents/Resources/* build/Thonny.app/Contents/Resources
+          cp $SCRIPT_DIR/Thonny.app.initial_template/Contents/Info.plist build/Thonny.app/Contents
+
+          FRAMEWORKS=build/Thonny.app/Contents/Frameworks
+          PYTHON_CURRENT=$FRAMEWORKS/Python.framework/Versions/3.14
+          EXE="${PYTHON_CURRENT}/bin/python3.14"
+
+          export MACOSX_DEPLOYMENT_TARGET=10.9
+
+          $EXE -s -m pip install --no-cache-dir wheel
+          $EXE -s -m pip install --no-binary mypy -r ../requirements-regular-bundle.txt
+          $EXE -s -m pip install --no-cache-dir certifi
+          $EXE -s -m pip install --no-cache-dir "$WHEEL_PATH"
+
+          rm $PYTHON_CURRENT/bin/thonny
+
+          rm -rf $PYTHON_CURRENT/Resources/English.lproj/Documentation
+          rm -rf $PYTHON_CURRENT/share
+          rm -rf $PYTHON_CURRENT/lib/python3.14/test
+          rm -rf $PYTHON_CURRENT/lib/python3.14/idlelib
+          rm -rf $PYTHON_CURRENT/bin/idle3
+          rm -rf $PYTHON_CURRENT/bin/idle3.14
+          rm -rf $PYTHON_CURRENT/lib/python3.14/site-packages/pylint/test
+          rm -rf $PYTHON_CURRENT/lib/python3.14/site-packages/mypy/test
+          find $PYTHON_CURRENT/lib -name '*.pyc' -delete
+          find $PYTHON_CURRENT/lib -name '*.exe' -delete
+
+          cd build/Thonny.app/Contents/MacOS
+          ln -s ../Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python Python
+          cd $SCRIPT_DIR
+
+          cp thonny_python.ini $PYTHON_CURRENT/bin
+          python3 make_scripts_relocatable.py "$PYTHON_CURRENT/bin"
+
+          sed -i '' "s/VERSION/$VERSION/" build/Thonny.app/Contents/Info.plist
+
+      - name: Create unsigned installer .pkg
+        run: |
+          cd packaging/mac
+
+          VERSION=$(cat ../../thonny/VERSION)
+
+          rm -rf resources_build
+          mkdir resources_build
+          cp resource_templates/* resources_build
+          sed -i '' "s/VERSION/$VERSION/g" resources_build/WELCOME.html
+          sed -i '' "s/PROD_NAME/Thonny/g" resources_build/WELCOME.html
+          cp ../license-soft-wrap.txt resources_build/LICENSE.txt 2>/dev/null || true
+
+          pkgbuild \
+            --root build \
+            --component-plist Component.plist \
+            --install-location /Applications \
+            --identifier "org.thonny.Thonny.component" \
+            --version $VERSION \
+            ThonnyComponent.pkg
+
+          mkdir -p dist
+          productbuild \
+            --identifier "org.thonny.Thonny.product" \
+            --version $VERSION \
+            --distribution Distribution.plist \
+            --resources resources_build \
+            dist/thonny-$VERSION-arm64.pkg
+
+      - name: Upload macOS ARM64 installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-installer-arm64
+          path: packaging/mac/dist/*.pkg
+
+  # ── Job 5: Create GitHub Release ──
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs:
+      - build-wheel
+      - build-windows
+      - build-macos-x64
+      - build-macos-arm64
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Get version
+        id: version
+        run: echo "version=$(cat thonny/VERSION)" >> $GITHUB_OUTPUT
+
+      - name: Organize release files
+        run: |
+          mkdir -p release
+          # Move all artifact files to a flat directory
+          find artifacts -type f -exec cp {} release/ \;
+          ls -la release/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: thonny-neutral ${{ github.ref_name }}
+          body: |
+            ## thonny-neutral ${{ github.ref_name }}
+
+            This is a neutral version of Thonny with Ukraine-related content removed.
+
+            Based on upstream [thonny ${{ steps.version.outputs.version }}](https://github.com/thonny/thonny/releases/tag/v${{ steps.version.outputs.version }}).
+
+            **Note:** macOS packages are unsigned. On Apple Silicon Macs, you may need to right-click and select "Open" to bypass Gatekeeper.
+          files: release/*
+          draft: false
+          prerelease: false
