@@ -106,9 +106,9 @@ jobs:
           & "$BUILDDIR\python.exe" -s -m pip install --no-warn-script-location --no-cache-dir $whl.FullName
 
           Write-Host "........... CLEANING PYTHON ............................"
-          Move-Item "$BUILDDIR\LICENSE.txt" "$BUILDDIR\PYTHON_LICENSE.txt" -Force
-          Move-Item "$BUILDDIR\README.txt" "$BUILDDIR\PYTHON_README.txt" -Force
-          Move-Item "$BUILDDIR\NEWS.txt" "$BUILDDIR\PYTHON_NEWS.txt" -Force
+          if (Test-Path "$BUILDDIR\LICENSE.txt") { Move-Item "$BUILDDIR\LICENSE.txt" "$BUILDDIR\PYTHON_LICENSE.txt" -Force }
+          if (Test-Path "$BUILDDIR\README.txt") { Move-Item "$BUILDDIR\README.txt" "$BUILDDIR\PYTHON_README.txt" -Force }
+          if (Test-Path "$BUILDDIR\NEWS.txt") { Move-Item "$BUILDDIR\NEWS.txt" "$BUILDDIR\PYTHON_NEWS.txt" -Force }
 
           Get-ChildItem -Path $BUILDDIR -Filter "*.pyc" -Recurse | Remove-Item -Force -ErrorAction SilentlyContinue
           Get-ChildItem -Path "$BUILDDIR\tcl" -Filter "*.lib" -Recurse | Remove-Item -Force -ErrorAction SilentlyContinue
