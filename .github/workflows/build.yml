@@ -83,7 +83,7 @@ jobs:
           New-Item -ItemType Directory -Path $BUILDDIR | Out-Null
 
           Write-Host "........... COPYING PYTHON ..................................."
-          xcopy "C:\Program Files\Python314\*" $BUILDDIR /S /E /K /Q | Out-Null
+          Copy-Item "C:\Program Files\Python314\*" $BUILDDIR -Recurse -Force
 
           Write-Host "........... COPYING OTHER STUFF ..................................."
           Copy-Item "ThonnyRunner314\x64\Release\thonny.exe" $BUILDDIR -Force
@@ -132,7 +132,7 @@ jobs:
           Write-Host "........... ADDING LICENSES ..................................."
           Copy-Item "..\..\LICENSE.txt" $BUILDDIR -Force
           New-Item -ItemType Directory -Path "$BUILDDIR\licenses" -Force | Out-Null
-          xcopy "..\..\licenses\*" "$BUILDDIR\licenses" /S /E /K /Q | Out-Null
+          Copy-Item "..\..\licenses\*" "$BUILDDIR\licenses" -Recurse -Force
 
           Write-Host "........... ADDING OTHER STUFF ..................................."
           Copy-Item "..\..\CHANGELOG.rst" $BUILDDIR -Force
