@@ -224,7 +224,7 @@ jobs:
 
           cd build/Thonny.app/Contents/MacOS
           ln -s ../Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python Python
-          cd $(pwd)/..
+          cd -
 
           cp thonny_python.ini $PYTHON_CURRENT/bin
           python3 make_scripts_relocatable.py "$PYTHON_CURRENT/bin"
@@ -332,7 +332,7 @@ jobs:
 
           cd build/Thonny.app/Contents/MacOS
           ln -s ../Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python Python
-          cd $(pwd)/..
+          cd -
 
           cp thonny_python.ini $PYTHON_CURRENT/bin
           python3 make_scripts_relocatable.py "$PYTHON_CURRENT/bin"
