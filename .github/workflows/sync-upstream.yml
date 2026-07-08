@@ -1,0 +1,24 @@
+name: Sync upstream and create neutral release
+
+on:
+  schedule:
+    - cron: '0 6 * * *'       # daily at UTC 06:00 = Beijing 14:00
+  workflow_dispatch:           # also supports manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Add upstream remote
+        run: git remote add upstream https://github.com/thonny/thonny.git
+
+      - name: Fetch upstream tags
+        run: git fetch upstream --tags
+
+      - name: Sync neutral releases
+        run: python tools/sync_upstream.py
