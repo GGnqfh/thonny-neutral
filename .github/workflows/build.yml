@@ -161,7 +161,7 @@ jobs:
   # ── Job 3: Build macOS x64 (Intel) installer ──
   build-macos-x64:
     name: Build macOS Intel x64 installer
-    runs-on: macos-13
+    runs-on: macos-latest
     needs: build-wheel
     steps:
       - uses: actions/checkout@v4
