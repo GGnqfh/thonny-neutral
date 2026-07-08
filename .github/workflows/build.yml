@@ -64,31 +64,17 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          $url = "https://www.python.org/ftp/python/$env:PYTHON314_VERSION/python-$env:PYTHON314_VERSION-amd64.exe"
-          $output = "$env:TEMP\python-installer.exe"
-          Write-Host "Downloading Python from $url"
-          Invoke-WebRequest -Uri $url -OutFile $output
-          Write-Host "Installing Python to C:\Program Files\Python314"
-          $proc = Start-Process -FilePath $output -ArgumentList "/quiet InstallAllUsers=1 TargetDir=C:\Program Files\Python314 PrependPath=0" -Wait -PassThru
-          Write-Host "Installer exit code: $($proc.ExitCode)"
-          if ($proc.ExitCode -ne 0) { throw "Python installer failed with exit code $($proc.ExitCode)" }
-          if (-not (Test-Path "C:\Program Files\Python314\python.exe")) {
-            Write-Host "Checking alternative paths..."
-            $paths = @("C:\Program Files\Python314", "C:\Python314", "C:\Program Files (x86)\Python314")
-            foreach ($p in $paths) {
-              if (Test-Path "$p\python.exe") {
-                Write-Host "Found Python at: $p"
-                break
-              }
-            }
-            if (-not (Test-Path "C:\Program Files\Python314\python.exe")) {
-              Write-Host "Listing C:\Program Files contents..."
-              Get-ChildItem "C:\Program Files" | Where-Object { $_.Name -like "*ython*" } | ForEach-Object { Write-Host "  $_" }
-              throw "Python not found at C:\Program Files\Python314\python.exe"
-            }
-          }
-          Write-Host "Python installed successfully"
-          & "C:\Program Files\Python314\python.exe" --version
+          $url = "https://www.python.org/ftp/python/$env:PYTHON314_VERSION/python-$env:PYTHON314_VERSION-amd64.zip"
+          $zip = "$env:TEMP\python.zip"
+          $target = "C:\Python314"
+          Write-Host "Downloading Python portable zip from $url"
+          Invoke-WebRequest -Uri $url -OutFile $zip
+          Write-Host "Extracting to $target"
+          if (Test-Path $target) { Remove-Item $target -Recurse -Force }
+          Expand-Archive -Path $zip -DestinationPath $target
+          Write-Host "Verifying python.exe"
+          if (-not (Test-Path "$target\python.exe")) { throw "python.exe not found after extraction" }
+          & "$target\python.exe" --version
 
       - name: Install Inno Setup
         run: choco install innosetup --no-progress -y
@@ -103,7 +89,7 @@ jobs:
           New-Item -ItemType Directory -Path $BUILDDIR | Out-Null
 
           Write-Host "........... COPYING PYTHON ..................................."
-          Copy-Item "C:\Program Files\Python314\*" $BUILDDIR -Recurse -Force
+          Copy-Item "C:\Python314\*" $BUILDDIR -Recurse -Force
 
           Write-Host "........... COPYING OTHER STUFF ..................................."
           Copy-Item "ThonnyRunner314\x64\Release\thonny.exe" $BUILDDIR -Force
