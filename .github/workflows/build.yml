@@ -74,89 +74,102 @@ jobs:
         run: choco install innosetup --no-progress -y
 
       - name: Build installer
-        shell: cmd
+        shell: pwsh
         working-directory: packaging\windows
         run: |
-          set BUILDDIR=build
-          if exist %BUILDDIR% rmdir %BUILDDIR% /S /Q
-          mkdir %BUILDDIR%
+          $ErrorActionPreference = "Stop"
+          $BUILDDIR = "build"
+          if (Test-Path $BUILDDIR) { Remove-Item $BUILDDIR -Recurse -Force }
+          New-Item -ItemType Directory -Path $BUILDDIR | Out-Null
 
-          echo ............... COPYING PYTHON ...................................
-          xcopy "C:\Program Files\Python314\*" %BUILDDIR% /S /E /K>NUL
+          Write-Host "........... COPYING PYTHON ..................................."
+          xcopy "C:\Program Files\Python314\*" $BUILDDIR /S /E /K /Q | Out-Null
 
-          echo ............... COPYING OTHER STUFF ...................................
-          copy ThonnyRunner314\x64\Release\thonny.exe %BUILDDIR% /Y
-          copy thonny_python.ini %BUILDDIR%
+          Write-Host "........... COPYING OTHER STUFF ..................................."
+          Copy-Item "ThonnyRunner314\x64\Release\thonny.exe" $BUILDDIR -Force
+          Copy-Item "thonny_python.ini" $BUILDDIR -Force
 
-          echo ............... INSTALLING DEPS ...................................
-          %BUILDDIR%\python -s -m pip install --no-warn-script-location --no-cache-dir wheel
-          %BUILDDIR%\python -s -m pip install --no-warn-script-location --no-cache-dir --no-binary mypy -r ..\requirements-regular-bundle.txt
+          Write-Host "........... INSTALLING DEPS ..................................."
+          & "$BUILDDIR\python.exe" -s -m pip install --no-warn-script-location --no-cache-dir wheel
+          & "$BUILDDIR\python.exe" -s -m pip install --no-warn-script-location --no-cache-dir --no-binary mypy -r ..\requirements-regular-bundle.txt
 
-          echo ............... INSTALLING THONNY (neutral) ...................................
-          for %%w in (..\..\dist\*.whl) do set WHEEL=%%w
-          %BUILDDIR%\python -s -m pip install --no-warn-script-location --no-cache-dir "%WHEEL%"
+          Write-Host "........... INSTALLING THONNY (neutral) ..................................."
+          $whl = Get-ChildItem -Path "..\..\dist\*.whl" | Select-Object -First 1
+          if (-not $whl) { throw "No wheel file found in dist/" }
+          Write-Host "Installing wheel: $($whl.FullName)"
+          & "$BUILDDIR\python.exe" -s -m pip install --no-warn-script-location --no-cache-dir $whl.FullName
 
-          echo ............... CLEANING PYTHON ............................
-          move %BUILDDIR%\LICENSE.txt %BUILDDIR%\PYTHON_LICENSE.txt
-          move %BUILDDIR%\README.txt %BUILDDIR%\PYTHON_README.txt
-          move %BUILDDIR%\NEWS.txt %BUILDDIR%\PYTHON_NEWS.txt
+          Write-Host "........... CLEANING PYTHON ............................"
+          Move-Item "$BUILDDIR\LICENSE.txt" "$BUILDDIR\PYTHON_LICENSE.txt" -Force
+          Move-Item "$BUILDDIR\README.txt" "$BUILDDIR\PYTHON_README.txt" -Force
+          Move-Item "$BUILDDIR\NEWS.txt" "$BUILDDIR\PYTHON_NEWS.txt" -Force
 
-          del /S "%BUILDDIR%\*.pyc">NUL
-          del /S "%BUILDDIR%\tcl\*.lib">NUL
-          del /S "%BUILDDIR%\*.a">NUL
-          del /S "%BUILDDIR%\*.chm">NUL
+          Get-ChildItem -Path $BUILDDIR -Filter "*.pyc" -Recurse | Remove-Item -Force -ErrorAction SilentlyContinue
+          Get-ChildItem -Path "$BUILDDIR\tcl" -Filter "*.lib" -Recurse | Remove-Item -Force -ErrorAction SilentlyContinue
+          Get-ChildItem -Path $BUILDDIR -Filter "*.a" -Recurse | Remove-Item -Force -ErrorAction SilentlyContinue
+          Get-ChildItem -Path $BUILDDIR -Filter "*.chm" -Recurse | Remove-Item -Force -ErrorAction SilentlyContinue
 
-          rmdir %BUILDDIR%\Doc /S /Q>NUL
-          rmdir %BUILDDIR%\Tools /S /Q>NUL
-          del "%BUILDDIR%\Scripts\*" /Q>NUL
+          if (Test-Path "$BUILDDIR\Doc") { Remove-Item "$BUILDDIR\Doc" -Recurse -Force }
+          if (Test-Path "$BUILDDIR\Tools") { Remove-Item "$BUILDDIR\Tools" -Recurse -Force }
+          Get-ChildItem "$BUILDDIR\Scripts\*" | Remove-Item -Force
 
-          copy pip.bat "%BUILDDIR%\Scripts\pip.bat"
-          copy pip.bat "%BUILDDIR%\Scripts\pip3.bat"
-          copy pip.bat "%BUILDDIR%\Scripts\pip3.14.bat"
+          Copy-Item "pip.bat" "$BUILDDIR\Scripts\pip.bat" -Force
+          Copy-Item "pip.bat" "$BUILDDIR\Scripts\pip3.bat" -Force
+          Copy-Item "pip.bat" "$BUILDDIR\Scripts\pip3.14.bat" -Force
 
-          rmdir %BUILDDIR%\lib\test /S /Q>NUL
+          if (Test-Path "$BUILDDIR\lib\test") { Remove-Item "$BUILDDIR\lib\test" -Recurse -Force }
+          if (Test-Path "$BUILDDIR\tcl\tix8.4.3\demos") { Remove-Item "$BUILDDIR\tcl\tix8.4.3\demos" -Recurse -Force }
+          if (Test-Path "$BUILDDIR\tcl\tk8.6\demos") { Remove-Item "$BUILDDIR\tcl\tk8.6\demos" -Recurse -Force }
+          if (Test-Path "$BUILDDIR\tcl\tk8.6\msgs") { Remove-Item "$BUILDDIR\tcl\tk8.6\msgs" -Recurse -Force }
+          if (Test-Path "$BUILDDIR\tcl\tcl8.6\opt0.4") { Remove-Item "$BUILDDIR\tcl\tcl8.6\opt0.4" -Recurse -Force }
+          if (Test-Path "$BUILDDIR\tcl\tcl8.6\msgs") { Remove-Item "$BUILDDIR\tcl\tcl8.6\msgs" -Recurse -Force }
+          if (Test-Path "$BUILDDIR\tcl\tcl8.6\tzdata") { Remove-Item "$BUILDDIR\tcl\tcl8.6\tzdata" -Recurse -Force }
+          if (Test-Path "$BUILDDIR\lib\site-packages\pylint\test") { Remove-Item "$BUILDDIR\lib\site-packages\pylint\test" -Recurse -Force }
+          if (Test-Path "$BUILDDIR\lib\site-packages\mypy\test") { Remove-Item "$BUILDDIR\lib\site-packages\mypy\test" -Recurse -Force }
 
-          del %BUILDDIR%\tcl\*.sh /Q>NUL
-          del %BUILDDIR%\tcl\tcl8.6\clock.tcl>NUL
-          del %BUILDDIR%\tcl\tcl8.6\safe.tcl>NUL
-          rmdir %BUILDDIR%\tcl\tix8.4.3\demos /S /Q>NUL
+          Get-ChildItem -Path "$BUILDDIR\tcl" -Filter "*.sh" | Remove-Item -Force -ErrorAction SilentlyContinue
 
-          rmdir %BUILDDIR%\tcl\tk8.6\demos /S /Q>NUL
-          rmdir %BUILDDIR%\tcl\tk8.6\msgs /S /Q>NUL
-          rmdir %BUILDDIR%\tcl\tcl8.6\opt0.4 /S /Q>NUL
-          rmdir %BUILDDIR%\tcl\tcl8.6\msgs /S /Q>NUL
-          rmdir %BUILDDIR%\tcl\tcl8.6\tzdata /S /Q>NUL
+          Write-Host "........... ADDING LICENSES ..................................."
+          Copy-Item "..\..\LICENSE.txt" $BUILDDIR -Force
+          New-Item -ItemType Directory -Path "$BUILDDIR\licenses" -Force | Out-Null
+          xcopy "..\..\licenses\*" "$BUILDDIR\licenses" /S /E /K /Q | Out-Null
 
-          rmdir %BUILDDIR%\lib\site-packages\pylint\test /S /Q>NUL
-          rmdir %BUILDDIR%\lib\site-packages\mypy\test /S /Q>NUL
+          Write-Host "........... ADDING OTHER STUFF ..................................."
+          Copy-Item "..\..\CHANGELOG.rst" $BUILDDIR -Force
+          Copy-Item "..\..\CREDITS.rst" $BUILDDIR -Force
+          Copy-Item "..\..\README.rst" $BUILDDIR -Force
 
-          echo ............... ADDING LICENSES ...................................
-          copy ..\..\LICENSE.txt %BUILDDIR% /Y>NUL
-          mkdir %BUILDDIR%\licenses
-          xcopy ..\..\licenses\* %BUILDDIR%\licenses /S /E /K>NUL
+          Write-Host "........... CREATING INSTALLER .........................."
+          $VERSION = Get-Content "$BUILDDIR\Lib\site-packages\thonny\VERSION" -Raw
+          $VERSION = $VERSION.Trim()
+          Write-Host "Version: $VERSION"
 
-          echo ............... ADDING OTHER STUFF ...................................
-          copy ..\..\CHANGELOG.rst %BUILDDIR% /Y>NUL
-          copy ..\..\CREDITS.rst %BUILDDIR% /Y>NUL
-          copy ..\..\README.rst %BUILDDIR% /Y>NUL
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\iscc.exe"
+          if (-not (Test-Path $iscc)) { $iscc = "C:\Program Files\Inno Setup 6\iscc.exe" }
+          if (-not (Test-Path $iscc)) { throw "Inno Setup not found" }
 
-          echo ............... CREATING INSTALLER ..........................
-          set /p VERSION=<%BUILDDIR%\Lib\site-packages\thonny\VERSION
-          "C:\Program Files (x86)\Inno Setup 6\iscc" /dInstallerPrefix=thonny /dAppVer=%VERSION% /dArch=x64 /dSupportedArchitectures="x64compatible arm64" /dSourceFolder=build inno_setup.iss
+          & $iscc /dInstallerPrefix=thonny /dAppVer=$VERSION /dArch=x64 "/dSupportedArchitectures=x64compatible arm64" /dSourceFolder=build inno_setup.iss
+          if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed" }
 
-          echo ............... CREATING PORTABLE ZIP ..........................
-          set PATH=%PATH%;C:\Program Files\7-Zip
-          copy ..\portable_thonny.ini %BUILDDIR%
-          cd %BUILDDIR%
-          7z a -tzip ..\dist\thonny-%VERSION%-windows-portable-x64.zip *
-          del portable_thonny.ini
-          cd ..
+          Write-Host "........... CREATING PORTABLE ZIP .........................."
+          New-Item -ItemType Directory -Path "dist" -Force | Out-Null
+          Copy-Item "..\portable_thonny.ini" $BUILDDIR -Force
+          Push-Location $BUILDDIR
+          & 7z a -tzip "..\dist\thonny-$VERSION-windows-portable-x64.zip" *
+          Pop-Location
+          Remove-Item "$BUILDDIR\portable_thonny.ini" -Force
+
+          Write-Host "........... Listing output files .........................."
+          Get-ChildItem "dist" | ForEach-Object { Write-Host "$($_.Name) - $([math]::Round($_.Length/1MB, 2)) MB" }
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
           name: windows-installer-x64
-          path: packaging\windows\dist\*
+          path: |
+            packaging\windows\dist\*.exe
+            packaging\windows\dist\*.zip
+            packaging\windows\installer_building.log
 
   # ── Job 3: Build macOS x64 (Intel) installer ──
   build-macos-x64:
