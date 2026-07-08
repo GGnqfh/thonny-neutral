@@ -117,7 +117,7 @@ jobs:
 
           if (Test-Path "$BUILDDIR\Doc") { Remove-Item "$BUILDDIR\Doc" -Recurse -Force }
           if (Test-Path "$BUILDDIR\Tools") { Remove-Item "$BUILDDIR\Tools" -Recurse -Force }
-          Get-ChildItem "$BUILDDIR\Scripts\*" | Remove-Item -Force
+          if (Test-Path "$BUILDDIR\Scripts") { Get-ChildItem "$BUILDDIR\Scripts\*" | Remove-Item -Force }
 
           Copy-Item "pip.bat" "$BUILDDIR\Scripts\pip.bat" -Force
           Copy-Item "pip.bat" "$BUILDDIR\Scripts\pip3.bat" -Force
