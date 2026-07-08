@@ -63,12 +63,32 @@ jobs:
       - name: Install Python ${{ env.PYTHON314_VERSION }}
         shell: pwsh
         run: |
+          $ErrorActionPreference = "Stop"
           $url = "https://www.python.org/ftp/python/$env:PYTHON314_VERSION/python-$env:PYTHON314_VERSION-amd64.exe"
           $output = "$env:TEMP\python-installer.exe"
-          Write-Host "Downloading Python $env:PYTHON314_VERSION from $url"
+          Write-Host "Downloading Python from $url"
           Invoke-WebRequest -Uri $url -OutFile $output
-          Start-Process -FilePath $output -ArgumentList "/quiet InstallAllUsers=1 TargetDir=C:\Program Files\Python314" -Wait -NoNewWindow
-          Write-Host "Python installed to C:\Program Files\Python314"
+          Write-Host "Installing Python to C:\Program Files\Python314"
+          $proc = Start-Process -FilePath $output -ArgumentList "/quiet InstallAllUsers=1 TargetDir=C:\Program Files\Python314 PrependPath=0" -Wait -PassThru
+          Write-Host "Installer exit code: $($proc.ExitCode)"
+          if ($proc.ExitCode -ne 0) { throw "Python installer failed with exit code $($proc.ExitCode)" }
+          if (-not (Test-Path "C:\Program Files\Python314\python.exe")) {
+            Write-Host "Checking alternative paths..."
+            $paths = @("C:\Program Files\Python314", "C:\Python314", "C:\Program Files (x86)\Python314")
+            foreach ($p in $paths) {
+              if (Test-Path "$p\python.exe") {
+                Write-Host "Found Python at: $p"
+                break
+              }
+            }
+            if (-not (Test-Path "C:\Program Files\Python314\python.exe")) {
+              Write-Host "Listing C:\Program Files contents..."
+              Get-ChildItem "C:\Program Files" | Where-Object { $_.Name -like "*ython*" } | ForEach-Object { Write-Host "  $_" }
+              throw "Python not found at C:\Program Files\Python314\python.exe"
+            }
+          }
+          Write-Host "Python installed successfully"
+          & "C:\Program Files\Python314\python.exe" --version
 
       - name: Install Inno Setup
         run: choco install innosetup --no-progress -y
