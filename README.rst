@@ -4,6 +4,11 @@ Thonny
 
 Thonny is a Python `IDE <https://en.wikipedia.org/wiki/Integrated_development_environment>`_ meant for learning programming.
 
+This is a `fork <https://github.com/GGnqfh/thonny-neutral>`_ of `thonny/thonny <https://github.com/thonny/thonny>`_.
+The only change from upstream is the removal of GUI elements related to the Russia-Ukraine war
+(toolbar button, status bar label, and flag images).
+Everything else is kept in sync with upstream releases via automated workflows.
+
 
 End users
 ---------
