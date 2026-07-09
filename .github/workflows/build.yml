@@ -3,7 +3,7 @@ name: Build thonny-neutral Release
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*-neutral'
   workflow_dispatch:
     inputs:
       version:
