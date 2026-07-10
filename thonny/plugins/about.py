@@ -140,14 +140,14 @@ def load_plugin() -> None:
         "changelog",
         "help",
         tr("Version history"),
-        lambda: open_url("https://github.com/thonny/thonny/blob/master/CHANGELOG.rst"),
+        lambda: open_url("https://github.com/GGnqfh/thonny-neutral/releases"),
         group=60,
     )
     get_workbench().add_command(
         "issues",
         "help",
         tr("Report problems"),
-        lambda: open_url("https://github.com/thonny/thonny/issues"),
+        lambda: open_url("https://github.com/GGnqfh/thonny-neutral/issues"),
         group=60,
     )
     get_workbench().add_command("about", "help", tr("About Thonny"), open_about, group=61)

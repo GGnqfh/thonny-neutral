@@ -56,9 +56,9 @@ dependencies = [
 ]
 
 [project.urls]
-"Bug tracker" = "https://github.com/thonny/thonny/issues"
-Homepage = "https://thonny.org"
-"Source code" = "https://github.com/thonny/thonny"
+"Bug tracker" = "https://github.com/GGnqfh/thonny-neutral/issues"
+Homepage = "https://github.com/GGnqfh/thonny-neutral"
+"Source code" = "https://github.com/GGnqfh/thonny-neutral"
 
 [project.gui-scripts]
 thonny = "thonny:launch"

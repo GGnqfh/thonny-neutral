@@ -148,6 +148,66 @@ def copy_ci_files(base_commit):
     return True
 
 
+def fix_upstream_urls():
+    """Replace upstream URLs with fork URLs."""
+    print("  9. Fixing upstream URLs to point to fork...")
+    URLS = [
+        (
+            "thonny/plugins/about.py",
+            'https://github.com/thonny/thonny/blob/master/CHANGELOG.rst',
+            'https://github.com/GGnqfh/thonny-neutral/releases',
+            "Version history URL",
+        ),
+        (
+            "thonny/plugins/about.py",
+            'https://github.com/thonny/thonny/issues',
+            'https://github.com/GGnqfh/thonny-neutral/issues',
+            "Bug tracker URL",
+        ),
+        (
+            "pyproject.toml",
+            '"Bug tracker" = "https://github.com/thonny/thonny/issues"',
+            '"Bug tracker" = "https://github.com/GGnqfh/thonny-neutral/issues"',
+            "pyproject bug tracker",
+        ),
+        (
+            "pyproject.toml",
+            'Homepage = "https://thonny.org"',
+            'Homepage = "https://github.com/GGnqfh/thonny-neutral"',
+            "pyproject homepage",
+        ),
+        (
+            "pyproject.toml",
+            '"Source code" = "https://github.com/thonny/thonny"',
+            '"Source code" = "https://github.com/GGnqfh/thonny-neutral"',
+            "pyproject source",
+        ),
+    ]
+    all_ok = True
+    for path, old, new, desc in URLS:
+        if not os.path.exists(path):
+            print(f"    [SKIP] {path} not found ({desc})")
+            continue
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+        if old not in content:
+            print(f"    [FAIL] Pattern not found in {path} ({desc})")
+            all_ok = False
+            continue
+        content = content.replace(old, new)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(content)
+        # Verify
+        if new in content:
+            print(f"    [OK] Fixed {desc}")
+        else:
+            print(f"    [FAIL] Verification failed for {desc}")
+            all_ok = False
+    if not all_ok:
+        print("    [WARN] Some URL replacements failed (upstream may have changed the pattern)")
+    return all_ok
+
+
 def scan_for_ukraine():
     print("  8. Scanning for remaining Ukraine references...")
     found = []
@@ -253,6 +313,7 @@ def main():
         git("checkout", "-b", branch, tag)
 
         remove_ukraine_content()
+        fix_upstream_urls()
         if not copy_ci_files(original_commit):
             git("checkout", original_commit)
             git("branch", "-D", branch)
