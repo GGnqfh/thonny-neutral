@@ -290,6 +290,9 @@ def main():
         print("\nAll upstream versions are already synced. Nothing to do.")
         return
 
+    # Only sync the latest version to prevent backfilling all historical releases
+    unsynced = unsynced[-1:]
+
     print(f"\nNew versions to sync: {unsynced}")
 
     for tag in unsynced:
