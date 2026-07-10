@@ -182,6 +182,18 @@ def fix_upstream_urls():
             '"Source code" = "https://github.com/GGnqfh/thonny-neutral"',
             "pyproject source",
         ),
+        (
+            "thonny/workbench.py",
+            '"general.data_url_prefix", "https://raw.githubusercontent.com/thonny/thonny/master/data"',
+            '"general.data_url_prefix", "https://raw.githubusercontent.com/GGnqfh/thonny-neutral/master/data"',
+            "data URL prefix",
+        ),
+        (
+            "thonny/assistance.py",
+            "    def _append_feedback_link(self):\n        self._append_text(\"Was it helpful or confusing?\\n\", (\"a\", \"feedback_link\"))",
+            "    def _append_feedback_link(self):\n        pass",
+            "disable feedback link",
+        ),
     ]
     all_ok = True
     for path, old, new, desc in URLS:

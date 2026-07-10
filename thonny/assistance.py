@@ -394,7 +394,7 @@ class AssistantView(tktextext.TextFrame):
         )
 
     def _append_feedback_link(self):
-        self._append_text("Was it helpful or confusing?\n", ("a", "feedback_link"))
+        pass
 
     def _format_file_url(self, atts):
         return format_file_url(atts["filename"], atts.get("lineno"), atts.get("col_offset"))

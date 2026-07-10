@@ -278,7 +278,7 @@ class Workbench(tk.Tk):
         self.set_default("file.avoid_zenity", True)
         self.set_default("run.working_directory", os.path.expanduser("~"))
         self.set_default(
-            "general.data_url_prefix", "https://raw.githubusercontent.com/thonny/thonny/master/data"
+            "general.data_url_prefix", "https://raw.githubusercontent.com/GGnqfh/thonny-neutral/master/data"
         )
         self.update_debug_mode()
 
