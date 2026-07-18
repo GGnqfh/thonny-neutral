@@ -14,31 +14,36 @@ import subprocess
 import sys
 
 
-def git(*args):
+def git(*args, check=True):
     cmd = ["git"] + list(args)
     result = subprocess.run(cmd, capture_output=True, text=True, check=False)
     if result.returncode != 0:
-        print(f"  [FAIL] git {' '.join(args)}")
-        print(f"         {result.stderr.strip()}")
-        result.check_returncode()
-    return result.stdout.strip()
+        if check:
+            print(f"  [FAIL] git {' '.join(args)}")
+            print(f"         {result.stderr.strip()}")
+            result.check_returncode()
+    return result
+
+
+def git_output(*args):
+    return git(*args).stdout.strip()
 
 
 def get_upstream_tags():
-    tags = [t.strip() for t in git("tag", "-l", "v*").split("\n") if t.strip()]
+    tags = [t.strip() for t in git_output("tag", "-l", "v*").split("\n") if t.strip()]
     version_tags = [t for t in tags if re.match(r"^v\d+\.\d+\.\d+$", t)]
     version_tags.sort(key=lambda t: tuple(int(x) for x in t.lstrip("v").split(".")))
     return version_tags
 
 
 def get_neutral_tags():
-    tags = [t.strip() for t in git("tag", "-l", "*-neutral").split("\n") if t.strip()]
+    tags = [t.strip() for t in git_output("tag", "-l", "*-neutral").split("\n") if t.strip()]
     return set(tags)
 
 
 def delete_file(path):
     if os.path.exists(path):
-        git("rm", path)
+        git_output("rm", path)
         print(f"    [OK] Deleted {path}")
     else:
         print(f"    [SKIP] {path} not found")
@@ -298,7 +303,7 @@ def main():
     print("  thonny-neutral sync upstream")
     print("=" * 60)
 
-    original_commit = git("rev-parse", "HEAD")
+    original_commit = git_output("rev-parse", "HEAD")
 
     print("\nFetching upstream tags...")
     git("fetch", "upstream", "--tags")
@@ -338,37 +343,39 @@ def main():
             print(f"  [SKIP] Tag {tag} not available locally")
             continue
 
+        git("checkout", "-D", branch, check=False)
         git("checkout", "-b", branch, tag)
+        print(f"  Checked out {tag}")
 
         remove_ukraine_content()
         fix_upstream_urls()
         if not copy_ci_files(original_commit):
-            git("checkout", original_commit)
-            git("branch", "-D", branch)
-            sys.exit(1)
+            print(f"\n  [SKIP] Tag {tag} (copy_ci_files failed)")
+            git("checkout", original_commit, check=False)
+            git("branch", "-D", branch, check=False)
+            continue
         if not scan_for_ukraine():
-            git("checkout", original_commit)
-            git("branch", "-D", branch)
-            sys.exit(1)
+            print(f"\n  [SKIP] Tag {tag} (Ukraine references remain)")
+            git("checkout", original_commit, check=False)
+            git("branch", "-D", branch, check=False)
+            continue
 
         git("add", "-A")
-        try:
-            git("commit", "-m", f"Remove Ukraine content for {tag}")
-            print("    [OK] Commit created")
-        except subprocess.CalledProcessError as e:
-            if "nothing to commit" in e.stderr.lower():
-                print("    [SKIP] Nothing changed, skipping")
-            else:
-                raise
+        r = git("commit", "-m", f"Neutralize {tag}", check=False)
+        if r.returncode != 0:
+            print(f"  [SKIP] No changes for {tag}")
+            git("checkout", original_commit, check=False)
+            git("branch", "-D", branch, check=False)
+            continue
 
         git("tag", neutral_tag)
-        print(f"    [OK] Created tag {neutral_tag}")
+        git("push", "fork", "HEAD:master", check=False)
+        git("push", "fork", neutral_tag, check=False)
+        new_tags.append(neutral_tag)
+        print(f"\n  [OK] Tagged {neutral_tag}")
 
-        git("push", "origin", neutral_tag)
-        print(f"    [OK] Pushed {neutral_tag} (build workflow triggered)")
-
-        git("checkout", original_commit)
-        git("branch", "-D", branch)
+        git("checkout", original_commit, check=False)
+        git("branch", "-D", branch, check=False)
         print(f"\n  [DONE] {tag} → {neutral_tag}")
 
     print(f"\n{'=' * 60}")
