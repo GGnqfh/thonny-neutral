@@ -25,4 +25,14 @@ jobs:
         run: git fetch upstream --tags
 
       - name: Sync neutral releases
-        run: python tools/sync_upstream.py
+        shell: bash
+        run: |
+          set -o pipefail
+          python tools/sync_upstream.py 2>&1 | tee /tmp/sync_output.txt
+
+      - name: Upload sync logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sync-logs
+          path: /tmp/sync_output.txt
