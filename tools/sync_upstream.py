@@ -369,8 +369,9 @@ def main():
             continue
 
         git("tag", neutral_tag)
-        git("push", "fork", "HEAD:master", check=False)
-        git("push", "fork", neutral_tag, check=False)
+        push_remote = os.environ.get("PUSH_REMOTE", "origin")
+        git("push", push_remote, "HEAD:master", check=False)
+        git("push", push_remote, neutral_tag, check=False)
         new_tags.append(neutral_tag)
         print(f"\n  [OK] Tagged {neutral_tag}")
 

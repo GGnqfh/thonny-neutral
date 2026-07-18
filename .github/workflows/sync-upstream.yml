@@ -22,10 +22,8 @@ jobs:
           git config user.name "thonny-neutral bot"
           git config user.email "bot@thonny-neutral"
 
-      - name: Add remotes
-        run: |
-          git remote add upstream https://github.com/thonny/thonny.git || true
-          git remote add fork https://github.com/GGnqfh/thonny-neutral.git || true
+      - name: Add upstream remote
+        run: git remote add upstream https://github.com/thonny/thonny.git || true
 
       - name: Fetch upstream tags
         run: git fetch upstream --tags
