@@ -34,16 +34,20 @@ jobs:
         run: |
           set -o pipefail
           python tools/sync_upstream.py 2>&1 | tee /tmp/sync_output.txt
-          exit_code=${PIPESTATUS[0]}
-          echo "exit_code=$exit_code" >> "$GITHUB_OUTPUT"
-          exit $exit_code
+          echo "${PIPESTATUS[0]}" > /tmp/exit_code.txt
 
-      - name: Upload sync logs
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: sync-logs
-          path: /tmp/sync_output.txt
+      - name: Write logs to summary
+        if: always()
+        shell: bash
+        run: |
+          echo '## Sync Output' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat /tmp/sync_output.txt >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "No output" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          if [ -f /tmp/exit_code.txt ]; then
+            echo "Exit code: $(cat /tmp/exit_code.txt)" >> $GITHUB_STEP_SUMMARY
+          fi
+          exit $(cat /tmp/exit_code.txt 2>/dev/null || echo 1)
 
       - name: Trigger build for new neutral tag
         if: steps.sync.outputs.exit_code == 0
