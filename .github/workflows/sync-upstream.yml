@@ -46,11 +46,4 @@ jobs:
           cat /tmp/sync_output.txt >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "No output" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
-      - name: Trigger build for new neutral tag
-        if: steps.sync.outputs.exit_code == '0'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          latest_tag=$(git tag -l "*-neutral" --sort=-version:refname | head -1)
-          echo "Triggering build for $latest_tag"
-          gh workflow run build.yml --ref "$latest_tag" --repo '${{ github.repository }}'
+

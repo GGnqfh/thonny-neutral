@@ -9,6 +9,9 @@ on:
       version:
         description: 'Version to build (e.g. v5.0.0)'
         required: true
+  workflow_run:
+    workflows: ["Sync upstream and create neutral release"]
+    types: [completed]
 
 env:
   PYTHON314_VERSION: '3.14.0'
@@ -21,8 +24,24 @@ jobs:
     outputs:
       wheel-path: ${{ steps.wheel-name.outputs.wheel }}
       source-version: ${{ steps.version.outputs.version }}
+      build-tag: ${{ steps.tag.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine tag
+        id: tag
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_run" ]]; then
+            TAG=$(git tag -l "v*-neutral" --sort=-version:refname | head -1)
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TAG="v${{ inputs.version }}-neutral"
+          else
+            TAG="${{ github.ref_name }}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Using tag: $TAG"
 
       - uses: actions/setup-python@v5
         with:
@@ -426,10 +445,10 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: thonny-neutral ${{ github.ref_name }}
+          tag_name: ${{ needs.build-wheel.outputs.build-tag || github.ref_name }}
+          name: thonny-neutral ${{ needs.build-wheel.outputs.build-tag || github.ref_name }}
           body: |
-            ## thonny-neutral ${{ github.ref_name }}
+            ## thonny-neutral ${{ needs.build-wheel.outputs.build-tag || github.ref_name }}
 
             This is a neutral version of Thonny with Ukraine-related content removed.
 
