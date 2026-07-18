@@ -325,6 +325,8 @@ def main():
 
     print(f"\nNew versions to sync: {unsynced}")
 
+    new_tags = []
+
     for tag in unsynced:
         neutral_tag = f"{tag}-neutral"
         branch = f"auto-sync-{tag}"
