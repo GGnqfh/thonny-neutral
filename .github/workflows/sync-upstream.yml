@@ -12,11 +12,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.PAT_TOKEN }}
 
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: Configure git
+        run: |
+          git config user.name "thonny-neutral bot"
+          git config user.email "bot@thonny-neutral"
 
       - name: Add upstream remote
         run: git remote add upstream https://github.com/thonny/thonny.git
@@ -25,10 +29,14 @@ jobs:
         run: git fetch upstream --tags
 
       - name: Sync neutral releases
+        id: sync
         shell: bash
         run: |
           set -o pipefail
           python tools/sync_upstream.py 2>&1 | tee /tmp/sync_output.txt
+          exit_code=${PIPESTATUS[0]}
+          echo "exit_code=$exit_code" >> "$GITHUB_OUTPUT"
+          exit $exit_code
 
       - name: Upload sync logs
         if: failure()
@@ -36,3 +44,12 @@ jobs:
         with:
           name: sync-logs
           path: /tmp/sync_output.txt
+
+      - name: Trigger build for new neutral tag
+        if: steps.sync.outputs.exit_code == 0
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          latest_tag=$(git tag -l "*-neutral" --sort=-version:refname | head -1)
+          echo "Triggering build for $latest_tag"
+          gh workflow run build.yml --ref "$latest_tag"

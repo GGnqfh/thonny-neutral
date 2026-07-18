@@ -182,6 +182,19 @@ def fix_upstream_urls():
             '"Source code" = "https://github.com/GGnqfh/thonny-neutral"',
             "pyproject source",
         ),
+        # Older versions use setup.py instead of pyproject.toml
+        (
+            "setup.py",
+            '"Bug tracker": "https://github.com/thonny/thonny/issues"',
+            '"Bug tracker": "https://github.com/GGnqfh/thonny-neutral/issues"',
+            "setup.py bug tracker",
+        ),
+        (
+            "setup.py",
+            'url="https://thonny.org"',
+            'url="https://github.com/GGnqfh/thonny-neutral"',
+            "setup.py homepage",
+        ),
         (
             "thonny/workbench.py",
             '"general.data_url_prefix", "https://raw.githubusercontent.com/thonny/thonny/master/data"',
