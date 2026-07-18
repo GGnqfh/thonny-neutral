@@ -22,8 +22,10 @@ jobs:
           git config user.name "thonny-neutral bot"
           git config user.email "bot@thonny-neutral"
 
-      - name: Add upstream remote
-        run: git remote add upstream https://github.com/thonny/thonny.git
+      - name: Add remotes
+        run: |
+          git remote add upstream https://github.com/thonny/thonny.git || true
+          git remote add fork https://github.com/GGnqfh/thonny-neutral.git || true
 
       - name: Fetch upstream tags
         run: git fetch upstream --tags
@@ -32,9 +34,10 @@ jobs:
         id: sync
         shell: bash
         run: |
-          set -o pipefail
           python tools/sync_upstream.py 2>&1 | tee /tmp/sync_output.txt
-          echo "${PIPESTATUS[0]}" > /tmp/exit_code.txt
+          exit_code=${PIPESTATUS[0]}
+          echo "exit_code=$exit_code" >> "$GITHUB_OUTPUT"
+          exit $exit_code
 
       - name: Write logs to summary
         if: always()
@@ -44,13 +47,9 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
           cat /tmp/sync_output.txt >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "No output" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          if [ -f /tmp/exit_code.txt ]; then
-            echo "Exit code: $(cat /tmp/exit_code.txt)" >> $GITHUB_STEP_SUMMARY
-          fi
-          exit $(cat /tmp/exit_code.txt 2>/dev/null || echo 1)
 
       - name: Trigger build for new neutral tag
-        if: steps.sync.outputs.exit_code == 0
+        if: steps.sync.outputs.exit_code == '0'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
